@@ -6,9 +6,9 @@ import logging
 import os
 import uuid
 
-from openerp import api, fields, models, _
-from openerp.exceptions import UserError
-from openerp.tools import config
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
+from odoo.tools import config
 
 from ..celery_tasks import call_task
 
