@@ -29,7 +29,7 @@ class CeleryTask(models.Model):
     record_ids = fields.Serialized(readonly=True)
     kwargs = fields.Serialized(readonly=True)
 
-    def call_task(self, model_name, method_name, record_ids=None, **kwargs):
+    def call_task(self, _model_name, _method_name, _record_ids=None, **kwargs):
         user = (os.environ.get('ODOO_CELERY_USER') or
                 config.misc.get("celery", {}).get('user'))
         password = (os.environ.get('ODOO_CELERY_PASSWORD') or
@@ -46,20 +46,20 @@ class CeleryTask(models.Model):
         res = self.create({
             'uuid': str(uuid.uuid4()),
             'user_id': user_id,
-            'model_name': model_name,
-            'method_name': method_name,
-            'record_ids': record_ids,
+            'model_name': _model_name,
+            'method_name': _method_name,
+            'record_ids': _record_ids,
             'kwargs': kwargs
         })
         url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         # TODO:
         # 1. Hiding sensitive information in arguments
         #    http://docs.celeryproject.org/en/latest/userguide/tasks.html#hiding-sensitive-information-in-arguments
-        call_task.apply_async(args=[url, self._cr.dbname, user_id, password, res.uuid, model_name, method_name], **kwargs)
+        call_task.apply_async(args=[url, self._cr.dbname, user_id, password, res.uuid, _model_name, _method_name], kwargs=kwargs)
 
     @api.model
-    def run_task(self, task_uuid, model_name, method_name, *args, **kwargs):
+    def run_task(self, task_uuid, _model_name, _method_name, *args, **kwargs):
         # Run task as administator (to prevent loads of access configuration)
-        model = self.env[model_name].sudo()
-        res = getattr(model, method_name)(**kwargs)
+        model = self.env[_model_name].sudo()
+        res = getattr(model, _method_name)(**kwargs)
         return res
