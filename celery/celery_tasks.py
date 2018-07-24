@@ -10,9 +10,9 @@ from celery import Celery
 app = Celery('odoo.addons.celery')
 
 @app.task(name='odoo.addons.celery.celery_tasks.call_task')
-def call_task(url, db, user_id, password, task_uuid, model_name, method_name, **kwargs):
+def call_task(url, db, user_id, password, task_uuid, _model_name, _method_name, **kwargs):
     odoo = xmlrpclib.ServerProxy('{}/xmlrpc/2/object'.format(url))
-    args = [task_uuid, model_name, method_name]
+    args = [task_uuid, _model_name, _method_name]
     try:
         res = odoo.execute_kw(db, user_id, password, 'celery.task', 'run_task', args, kwargs)
         return res
