@@ -5,20 +5,26 @@
 import logging
 import os
 import uuid
+import xmlrpclib
 
-from odoo import api, fields, models, _
+from odoo import api, fields, models, registry, _
 from odoo.exceptions import UserError
 from odoo.tools import config
 
-from ..celery_tasks import call_task
+from ..odoo import call_task
 
-_logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+TASK_SUCCESS = 'SUCCESS'
+TASK_ERROR = 'ERROR'
+TASK_NOT_FOUND = 'NOT_FOUND'
 
 
 class CeleryTask(models.Model):
     _name = 'celery.task'
     _description = 'Celery Task'
     _inherit = ['mail.thread']
+    _rec_name = 'uuid'
     _order = 'create_date DESC'
 
     uuid = fields.Char(string='UUID', readonly=True, index=True, required=True)
@@ -38,28 +44,44 @@ class CeleryTask(models.Model):
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
         if not user_id:
             msg = _('The user "%s" doesn\'t exist.') % user
-            _logger.error(msg)
-            # raise UserError(msg)
-            return
+            logger.error(msg)
+            return False
         
         user_id = user_id[0]['id']
-        res = self.create({
-            'uuid': str(uuid.uuid4()),
-            'user_id': user_id,
-            'model_name': _model_name,
-            'method_name': _method_name,
-            'record_ids': _record_ids,
-            'kwargs': kwargs
-        })
-        url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        # TODO:
-        # 1. Hiding sensitive information in arguments
-        #    http://docs.celeryproject.org/en/latest/userguide/tasks.html#hiding-sensitive-information-in-arguments
-        call_task.apply_async(args=[url, self._cr.dbname, user_id, password, res.uuid, _model_name, _method_name], kwargs=kwargs)
 
+        with registry(self._cr.dbname).cursor() as cr:
+            env = api.Environment(cr, user_id, {})
+            try:
+                res = self.with_env(env).create({
+                    'uuid': str(uuid.uuid4()),
+                    'user_id': user_id,
+                    'model_name': _model_name,
+                    'method_name': _method_name,
+                    'record_ids': _record_ids,
+                    'kwargs': kwargs
+                })
+                cr.commit()
+                url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+                call_task.apply_async(args=[url, self._cr.dbname, user_id, password, res.uuid, _model_name, _method_name], kwargs=kwargs)
+            except Exception as e:
+                logger.error(_('ERROR IN call_task %s: %s') % (res.uuid, e))
+                cr.rollback()
     @api.model
     def run_task(self, task_uuid, _model_name, _method_name, *args, **kwargs):
-        # Run task as administator (to prevent loads of access configuration)
+        # Run task as administator (to circumvent model-access configuration for models which run/process task).
+        # Maybe change this in the futue by a parameter/setting?
+        exist = self.search_count([('uuid', '=', task_uuid)])
+        if exist == 0:
+            msg = "Task doesn't exist (anymore). Task-UUID: %s" % task_uuid
+            logger.error(msg)
+            return (TASK_NOT_FOUND, msg)
         model = self.env[_model_name].sudo()
-        res = getattr(model, _method_name)(**kwargs)
-        return res
+
+        # TODO re-raise Exception if not called by XML-RPC, but directly from model/Odoo.
+        # This supports unit-tests and scripting purposes.
+        try:
+            res = getattr(model, _method_name)(**kwargs)
+            return (TASK_SUCCESS, res)
+        except Exception as e:
+            msg = "%s(%s)" % (type(e).__name__, e.message)
+            return (TASK_ERROR, msg)
