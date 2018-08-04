@@ -24,7 +24,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html) -->
 	    <field name="model">celery.task</field>
 	    <field name="type">form</field>
 	    <field name="arch" type="xml">
-		<form string="taskLog record">
+		<form string="Celery Task">
                     <sheet>
                         <group>
 		            <field name="uuid"/>
@@ -35,6 +35,23 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html) -->
                         </group>
                     </sheet>
 		</form>
+	    </field>
+        </record>
+
+	<record id="view_celery_task_search" model="ir.ui.view">
+	    <field name="name">celery.task.search</field>
+	    <field name="model">celery.task</field>
+	    <field name="type">search</field>
+	    <field name="arch" type="xml">
+		<search string="Celery Task">
+		    <field name="uuid"/>
+                    <field name="model_name"/>
+                    <field name="method_name"/>
+		    <group expand="0" string="Group By">
+	                <filter string="Model" domain="[]" context="{'group_by': 'model_name'}"/>
+	                <filter string="Task/method" domain="[]" context="{'group_by': 'method_name'}"/>
+                    </group>
+                </search>
 	    </field>
         </record>
 

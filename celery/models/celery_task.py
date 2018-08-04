@@ -24,6 +24,7 @@ class CeleryTask(models.Model):
     _name = 'celery.task'
     _description = 'Celery Task'
     _inherit = ['mail.thread']
+    _rec_name = 'uuid'
     _order = 'create_date DESC'
 
     uuid = fields.Char(string='UUID', readonly=True, index=True, required=True)
