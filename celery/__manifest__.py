@@ -18,5 +18,8 @@
         'views/celery_task_views.xml',
         'views/celery_menu.xml',
     ],
+    'images': [
+        'static/description/banner.png',
+    ],
     'installable': True,
 }
