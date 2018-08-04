@@ -8,6 +8,7 @@ import uuid
 import xmlrpclib
 
 from odoo import api, fields, models, registry, _
+from odoo.addons.base_sparse_field.models.fields import Serialized
 from odoo.exceptions import UserError
 from odoo.tools import config
 
@@ -32,8 +33,8 @@ class CeleryTask(models.Model):
     company_id = fields.Many2one('res.company', string='Company', index=True, readonly=True)
     model_name = fields.Char(string='Model', readonly=True)
     method_name = fields.Char(string='Task', readonly=True)
-    record_ids = fields.Serialized(readonly=True)
-    kwargs = fields.Serialized(readonly=True)
+    record_ids = Serialized(readonly=True)
+    kwargs = Serialized(readonly=True)
 
     def call_task(self, _model_name, _method_name, _record_ids=None, **kwargs):
         user = (os.environ.get('ODOO_CELERY_USER') or
