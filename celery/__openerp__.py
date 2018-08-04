@@ -15,7 +15,8 @@
         'python': ['celery'],
     },
     'data': [
-        # 'views/celery_task_views.xml',
+        'views/celery_task_views.xml',
+        'views/celery_menu.xml',
     ],
     'installable': True,
 }

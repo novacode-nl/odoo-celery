@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<!-- Copyright 2018 Nova Code (http://www.novacode.nl)
+License LGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html) -->
+
+<odoo>
+    <data>
+        <menuitem id="menu_celery_root"
+                  name="Celery"
+                  sequence="10"
+                  web_icon="celery,static/description/icon.png"/>
+        <!-- groups="celery.group_celery_manager"/> -->
+
+        <menuitem id="menu_celery_task_root"
+                  name="Tasks"
+                  parent="menu_celery_root"/>
+        <!-- groups="celery.group_celery_manager"/> -->
+
+        <menuitem id="menu_celery_task"
+                  name="Tasks Created"
+                  parent="menu_celery_task_root"
+                  action="action_celery_task"/>
+     </data>
+</odoo>
