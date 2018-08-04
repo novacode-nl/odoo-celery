@@ -4,7 +4,7 @@
 {
     'name': 'Celery',
     'summary': 'Celery Distributed Task Queue',
-    'category': 'Generic Modules',
+    'category': 'Extra Tools',
     'version': '0.1',
     'description': """Execute Odoo task by Celery worker.""",
     'author': 'Nova Code',
