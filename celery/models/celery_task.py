@@ -117,22 +117,22 @@ class CeleryTask(models.Model):
         # TODO
         # Re-raise Exception if not called by XML-RPC, but directly from model/Odoo.
         # This supports unit-tests and scripting purposes.
+        vals = {}
         try:
-            task.write({'state': STATE_STARTED, 'started_date': fields.Datetime.now()})
-            res = getattr(model, _method_name)(**kwargs)
-            task.write({'state': STATE_SUCCESS, 'success_date': fields.Datetime.now()})
-            return (STATE_SUCCESS, res)
+            vals.update({'state': STATE_STARTED, 'started_date': fields.Datetime.now()})
+            result = getattr(model, _method_name)(**kwargs)
+            vals.update({'state': STATE_SUCCESS, 'success_date': fields.Datetime.now()})
         except Exception as e:
             """ The Exception-handler does a rollback. So we need a new
             transaction/cursor to store data about Failure. """
             # TODO
-            # Could STATE_RETRY be set here?
+            # - Could STATE_RETRY be set here?
             # Possibile retry(s) could be registered somewhere, e.g. in the task/model object?
-            msg = "%s: %s" % (type(e).__name__, e.message)
-            with RegistryManager.get(self._cr.dbname).cursor() as cr:
+            # - Add (exc)trace to task record.
+            result = "%s: %s" % (type(e).__name__, e.message)
+            vals.update({'state': STATE_FAILURE, 'failure_date': fields.Datetime.now(), 'result': result})
+        finally:
+            with registry(self._cr.dbname).cursor() as cr:
                 env = api.Environment(cr, self._uid, {})
-                vals = {'state': STATE_FAILURE,
-                        'failure_date': fields.Datetime.now(),
-                        'result': msg}
                 task.with_env(env).write(vals)
-            return (STATE_FAILURE, msg)
+            return (vals.get('state'), result)
