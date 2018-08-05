@@ -3,9 +3,9 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 {
     'name': 'Celery',
-    'summary': 'Celery Distributed Task Queue',
+    'summary': 'Celery (Distributed Task Queue)',
     'category': 'Extra Tools',
-    'version': '0.1',
+    'version': '0.2',
     'description': """Execute Odoo task by Celery worker.""",
     'author': 'Nova Code',
     'website': 'https://www.novacode.nl',
