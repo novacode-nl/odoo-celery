@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright 2018 Nova Code (http://www.novacode.nl)
-# License LGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
 import xmlrpclib
 
@@ -9,10 +9,10 @@ from celery.contrib import rdb
 from celery.exceptions import TaskError
 
 
-class TaskNotFoundInOdooError(TaskError):
+class TaskNotFoundInOdoo(TaskError):
     """The task doesn't exist (anymore) in Odoo (Celery Task model)."""
 
-class TaskRunOdooError(TaskError):
+class RunTaskFailure(TaskError):
     """Error from run_task in Odoo."""
 
 
@@ -28,9 +28,9 @@ def call_task(url, db, user_id, password, task_uuid, _model_name, _method_name, 
     
     if code == 'NOT_FOUND':
         msg = "%s, database: %s" % (result, db)
-        raise TaskNotFoundInOdooError(msg)
-    elif code == 'ERROR':
+        raise TaskNotFoundInOdoo(msg)
+    elif code == 'FAILURE':
         msg = "%s, database: %s" % (result, db)
-        raise TaskRunOdooError(msg)
+        raise RunTaskFailure(msg)
     else:
         return response
