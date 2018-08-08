@@ -61,6 +61,8 @@ class CeleryTask(models.Model):
         - RETRY: The task is to be retried, possibly because of failure.
         - FAILURE: The task raised an exception, or has exceeded the retry limit.
         - SUCCESS: The task executed successfully.""")
+    res_model = fields.Char(string='Related Model', readonly=True)
+    res_ids = fields.Serialized(string='Related Ids', readonly=True)
 
     def call_task(self, _model_name, _method_name, _record_ids=None, **kwargs):
         """ Call Task dispatch to the Celery interface. """
@@ -121,7 +123,12 @@ class CeleryTask(models.Model):
         result = False
         try:
             vals.update({'state': STATE_STARTED, 'started_date': fields.Datetime.now()})
-            result = getattr(model, _method_name)(**kwargs)
+            res = getattr(model, _method_name)(task_uuid, **kwargs)
+            if isinstance(res, dict):
+                result = res.get('result', True)
+                vals.update({'result': result, 'res_model': res.get('res_model'), 'res_ids': res.get('res_ids')})
+            else:
+                result = res
             vals.update({'state': STATE_SUCCESS, 'success_date': fields.Datetime.now(), 'result': result})
         except Exception as e:
             """ The Exception-handler does a rollback. So we need a new
@@ -137,3 +144,32 @@ class CeleryTask(models.Model):
                 env = api.Environment(cr, self._uid, {})
                 task.with_env(env).write(vals)
             return (vals.get('state'), result)
+
+    @api.multi
+    def action_open_related_record(self):
+        """ Open a view with the record(s) of the task.  If it's one record,
+        it opens a form-view.  If it concerns mutltiple records, it opens
+        a tree view.
+        """
+
+        self.ensure_one()
+        model_name = self.res_model
+        records = self.env[model_name].browse(self.res_ids).exists()
+        if not records:
+            return None
+        action = {
+            'name': _('Related Record'),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': records._name,
+        }
+        if len(records) == 1:
+            action['res_id'] = records.id
+        else:
+            action.update({
+                'name': _('Related Records'),
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', records.ids)],
+            })
+        return action

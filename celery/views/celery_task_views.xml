@@ -30,6 +30,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	    <field name="arch" type="xml">
 		<form string="Celery Tasks">
                     <header>
+                        <button name="action_open_related_record" type="object" string="Related"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <sheet>
