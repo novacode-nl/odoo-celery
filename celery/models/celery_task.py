@@ -137,7 +137,7 @@ class CeleryTask(models.Model):
             # - Could STATE_RETRY be set here?
             # Possibile retry(s) could be registered somewhere, e.g. in the task/model object?
             # - Add (exc)trace to task record.
-            result = "%s: %s" % (type(e).__name__, e.message)
+            result = "%s: %s" % (type(e).__name__, e)
             vals.update({'state': STATE_FAILURE, 'failure_date': fields.Datetime.now(), 'result': result})
         finally:
             with registry(self._cr.dbname).cursor() as cr:

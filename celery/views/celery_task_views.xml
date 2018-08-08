@@ -30,10 +30,13 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	    <field name="arch" type="xml">
 		<form string="Celery Tasks">
                     <header>
-                        <button name="action_open_related_record" type="object" string="Related"/>
+                        <button
+                            name="action_open_related_record" type="object" string="Related"
+                            attrs="{'invisible': [('res_model', '=', False)]}"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <sheet>
+                        <field name="res_model" invisible="1"/>
                         <group>
 		            <field name="uuid"/>
                             <field name="model_name"/>
