@@ -45,8 +45,7 @@ class CeleryTask(models.Model):
     record_ids = fields.Serialized(readonly=True)
     kwargs = fields.Serialized(readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
-    success_date = fields.Datetime(string='Success Time', readonly=True)
-    failure_date = fields.Datetime(string='Failure Time', readonly=True)
+    state_date = fields.Datetime(string='State Time', readonly=True)
     result = fields.Text(string='Result', readonly=True)
     state = fields.Selection(
         STATES,
@@ -129,7 +128,7 @@ class CeleryTask(models.Model):
                 vals.update({'result': result, 'res_model': res.get('res_model'), 'res_ids': res.get('res_ids')})
             else:
                 result = res
-            vals.update({'state': STATE_SUCCESS, 'success_date': fields.Datetime.now(), 'result': result})
+            vals.update({'state': STATE_SUCCESS, 'state_date': fields.Datetime.now(), 'result': result})
         except Exception as e:
             """ The Exception-handler does a rollback. So we need a new
             transaction/cursor to store data about Failure. """
@@ -138,7 +137,7 @@ class CeleryTask(models.Model):
             # Possibile retry(s) could be registered somewhere, e.g. in the task/model object?
             # - Add (exc)trace to task record.
             result = "%s: %s" % (type(e).__name__, e)
-            vals.update({'state': STATE_FAILURE, 'failure_date': fields.Datetime.now(), 'result': result})
+            vals.update({'state': STATE_FAILURE, 'state_date': fields.Datetime.now(), 'result': result})
         finally:
             with registry(self._cr.dbname).cursor() as cr:
                 env = api.Environment(cr, self._uid, {})

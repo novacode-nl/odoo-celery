@@ -15,9 +15,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="model_name"/>
                     <field name="method_name"/>
                     <field name="create_date" readonly="1"/>
-                    <field name="started_date"/>
-                    <field name="failure_date"/>
-                    <field name="success_date"/>
+                    <field name="state_date"/>
                     <field name="state"/>
 		</tree>
 	    </field>
@@ -43,8 +41,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             <field name="method_name"/>
                             <field name="create_date"/>
                             <field name="started_date"/>
-                            <field name="failure_date"/>
-                            <field name="success_date"/>
+                            <field name="state_date"/>
                             <field name="result"/>
                             <field name="user_id"/>
                         </group>
