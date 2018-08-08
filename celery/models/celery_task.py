@@ -118,10 +118,11 @@ class CeleryTask(models.Model):
         # Re-raise Exception if not called by XML-RPC, but directly from model/Odoo.
         # This supports unit-tests and scripting purposes.
         vals = {}
+        result = False
         try:
             vals.update({'state': STATE_STARTED, 'started_date': fields.Datetime.now()})
             result = getattr(model, _method_name)(**kwargs)
-            vals.update({'state': STATE_SUCCESS, 'success_date': fields.Datetime.now()})
+            vals.update({'state': STATE_SUCCESS, 'success_date': fields.Datetime.now(), 'result': result})
         except Exception as e:
             """ The Exception-handler does a rollback. So we need a new
             transaction/cursor to store data about Failure. """
