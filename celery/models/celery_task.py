@@ -5,7 +5,6 @@
 import logging
 import os
 import uuid
-import xmlrpclib
 
 from odoo import api, fields, models, registry, _
 from odoo.addons.base_sparse_field.models.fields import Serialized
