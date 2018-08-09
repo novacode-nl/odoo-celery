@@ -29,6 +29,11 @@ STATES = [(STATE_PENDING, 'Pending'),
           (STATE_FAILURE, 'Failure'),
           (STATE_SUCCESS, 'Success')]
 
+def _get_celery_user_config():
+    user = (os.environ.get('ODOO_CELERY_USER') or config.misc.get("celery", {}).get('user'))
+    password = (os.environ.get('ODOO_CELERY_PASSWORD') or config.misc.get("celery", {}).get('password'))
+    return (user, password)
+
 
 class CeleryTask(models.Model):
     _name = 'celery.task'
@@ -65,11 +70,8 @@ class CeleryTask(models.Model):
 
     def call_task(self, _model_name, _method_name, _record_ids=None, **kwargs):
         """ Call Task dispatch to the Celery interface. """
-        user = (os.environ.get('ODOO_CELERY_USER') or
-                config.misc.get("celery", {}).get('user'))
-        password = (os.environ.get('ODOO_CELERY_PASSWORD') or
-                    config.misc.get("celery", {}).get('password'))
 
+        user, password = _get_celery_user_config()
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
         if not user_id:
             msg = _('The user "%s" doesn\'t exist.') % user
@@ -88,12 +90,22 @@ class CeleryTask(models.Model):
                     'method_name': _method_name,
                     'record_ids': _record_ids,
                     'kwargs': kwargs})
-                # cr.commit() # Needed?
-                url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-                call_task.apply_async(args=[url, self._cr.dbname, user_id, password, res.uuid, _model_name, _method_name], kwargs=kwargs)
-            except Exception as e:
-                logger.error(_('ERROR IN call_task %s: %s') % (res.uuid, e))
+                self._celery_call_task(user_id, password, res.uuid, _model_name, _method_name, kwargs=kwargs)
+            except CeleryCallTaskException as e:
+                logger.error(_('ERROR FROM call_task %s: %s') % (res.uuid, e))
                 cr.rollback()
+            except Exception as e:
+                logger.error(_('ERROR FROM call_task: %s') % (e))
+                cr.rollback()
+
+    @api.model
+    def _celery_call_task(self, user_id, password, uuid, _model_name, _method_name, **kwargs):
+        try:
+            url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+            call_task.apply_async(args=[url, self._cr.dbname, user_id, password, uuid, _model_name, _method_name], kwargs=kwargs)
+        except Exception as e:
+            raise CeleryCallTaskException
+
     @api.model
     def run_task(self, task_uuid, _model_name, _method_name, *args, **kwargs):
         """ Run/execute the task, which is a model method.
@@ -141,12 +153,33 @@ class CeleryTask(models.Model):
                 # - Add (exc)trace to task record.
                 result = "%s: %s" % (type(e).__name__, e)
                 vals.update({'state': STATE_FAILURE, 'state_date': fields.Datetime.now(), 'result': result})
+                logger.error(_('ERROR FROM run_task %s: %s') % (task_uuid, e))
                 cr.rollback()
             finally:
                 with registry(self._cr.dbname).cursor() as result_cr:
                     env = api.Environment(result_cr, self._uid, {})
                     task.with_env(env).write(vals)
                 return (vals.get('state'), result)
+
+    def set_state_pending(self):
+        self.state = STATE_PENDING
+        self.started_date = None
+        self.state_date = None
+        self.result = None
+
+    @api.multi
+    def requeue(self):
+        user, password = _get_celery_user_config()
+        user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
+        user_id = user_id[0]['id']
+
+        for task in self:
+            task.set_state_pending()
+            try:
+                self._celery_call_task(user_id, password, task.uuid, task.model_name, task.method_name, kwargs=task.kwargs)
+            except CeleryCallTaskException as e:
+                logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
+        return True
 
     @api.multi
     def action_open_related_record(self):
@@ -176,3 +209,28 @@ class CeleryTask(models.Model):
                 'domain': [('id', 'in', records.ids)],
             })
         return action
+
+
+class RequeueTask(models.TransientModel):
+    _name = 'celery.requeue.task'
+    _description = 'Celery Requeue Tasks Wizard'
+
+    @api.model
+    def _default_task_ids(self):
+        res = False
+        context = self.env.context
+        if (context.get('active_model') == 'celery.task' and
+                context.get('active_ids')):
+            res = context['active_ids']
+        return res
+
+    task_ids = fields.Many2many('celery.task', string='Tasks', default=_default_task_ids)
+
+    @api.multi
+    def requeue(self):
+        self.task_ids.requeue()
+        return {'type': 'ir.actions.act_window_close'}
+
+
+class CeleryCallTaskException(Exception):
+    """ CeleryCallTaskException """

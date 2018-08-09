@@ -79,6 +79,23 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	    </field>
         </record>
 
+        <record id="view_requeue_celery_task" model="ir.ui.view">
+            <field name="name">Requeue Task</field>
+            <field name="model">celery.requeue.task</field>
+            <field name="arch" type="xml">
+                <form string="Requeue Tasks">
+                    <group string="The selected tasks will be requeued.">
+                        <field name="task_ids" nolabel="1"/>
+                    </group>
+                    <footer>
+                        <button name="requeue" string="Requeue" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
         <record id="action_celery_task" model="ir.actions.act_window">
             <field name="name">Celery Task</field>
             <field name="res_model">celery.task</field>
@@ -86,5 +103,15 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_celery_task_tree"/>
         </record>
+
+        <record id="action_requeue_celery_task" model="ir.actions.act_window">
+            <field name="name">Requeue Task</field>
+            <field name="res_model">celery.requeue.task</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_requeue_celery_task"/>
+            <field name="target">new</field>
+            <field name="binding_model_id" ref="celery.model_celery_task"/>
+    </record>
     </data>
 </odoo>
