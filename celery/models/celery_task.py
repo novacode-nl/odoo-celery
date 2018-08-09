@@ -120,29 +120,33 @@ class CeleryTask(models.Model):
         # This supports unit-tests and scripting purposes.
         vals = {}
         result = False
-        try:
-            vals.update({'state': STATE_STARTED, 'started_date': fields.Datetime.now()})
-            res = getattr(model, _method_name)(task_uuid, **kwargs)
-            if isinstance(res, dict):
-                result = res.get('result', True)
-                vals.update({'result': result, 'res_model': res.get('res_model'), 'res_ids': res.get('res_ids')})
-            else:
-                result = res
-            vals.update({'state': STATE_SUCCESS, 'state_date': fields.Datetime.now(), 'result': result})
-        except Exception as e:
-            """ The Exception-handler does a rollback. So we need a new
-            transaction/cursor to store data about Failure. """
-            # TODO
-            # - Could STATE_RETRY be set here?
-            # Possibile retry(s) could be registered somewhere, e.g. in the task/model object?
-            # - Add (exc)trace to task record.
-            result = "%s: %s" % (type(e).__name__, e)
-            vals.update({'state': STATE_FAILURE, 'state_date': fields.Datetime.now(), 'result': result})
-        finally:
-            with registry(self._cr.dbname).cursor() as cr:
-                env = api.Environment(cr, self._uid, {})
-                task.with_env(env).write(vals)
-            return (vals.get('state'), result)
+        with registry(self._cr.dbname).cursor() as cr:
+            # Transaction/cursror for the exception handler.
+            env = api.Environment(cr, self._uid, {})
+            try:
+                vals.update({'state': STATE_STARTED, 'started_date': fields.Datetime.now()})
+                res = getattr(model.with_env(env), _method_name)(task_uuid, **kwargs)
+                if isinstance(res, dict):
+                    result = res.get('result', True)
+                    vals.update({'result': result, 'res_model': res.get('res_model'), 'res_ids': res.get('res_ids')})
+                else:
+                    result = res
+                vals.update({'state': STATE_SUCCESS, 'state_date': fields.Datetime.now(), 'result': result})
+            except Exception as e:
+                """ The Exception-handler does a rollback. So we need a new
+                transaction/cursor to store data about Failure. """
+                # TODO
+                # - Could STATE_RETRY be set here?
+                # Possibile retry(s) could be registered somewhere, e.g. in the task/model object?
+                # - Add (exc)trace to task record.
+                result = "%s: %s" % (type(e).__name__, e)
+                vals.update({'state': STATE_FAILURE, 'state_date': fields.Datetime.now(), 'result': result})
+                cr.rollback()
+            finally:
+                with registry(self._cr.dbname).cursor() as result_cr:
+                    env = api.Environment(result_cr, self._uid, {})
+                    task.with_env(env).write(vals)
+                return (vals.get('state'), result)
 
     @api.multi
     def action_open_related_record(self):
