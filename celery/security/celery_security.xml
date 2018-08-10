@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2018 Nova Code (http://www.novacode.nl)
+License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
+
+<odoo>
+    <data>
+        <record id="module_category_celery" model="ir.module.category">
+            <field name="name">Celery</field>
+            <field name="description">Celery (Distributed Task Queue)</field>
+            <field name="sequence">100</field>
+        </record>
+
+        <record id="group_celery_manager" model="res.groups">
+            <field name="name">Celery Manager</field>
+            <field name="category_id" ref="celery.module_category_celery"/>
+        </record>
+
+        <record id="group_celery_rpc" model="res.groups">
+            <field name="name">Celery RPC</field>
+            <field name="category_id" ref="celery.module_category_celery"/>
+        </record>
+    </data>
+</odoo>

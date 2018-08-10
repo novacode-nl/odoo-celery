@@ -10,11 +10,13 @@
     'author': 'Nova Code',
     'website': 'https://www.novacode.nl',
     'license': "LGPL-3",
-    'depends': ['mail'],
+    'depends': ['base'],
     'external_dependencies': {
         'python': ['celery'],
     },
     'data': [
+        'security/celery_security.xml',
+        'security/ir_model_access.xml',
         'views/celery_task_views.xml',
         'views/celery_menu.xml',
     ],
@@ -22,4 +24,5 @@
         'static/description/banner.png',
     ],
     'installable': True,
+    'application' : True,
 }

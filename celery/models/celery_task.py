@@ -32,13 +32,15 @@ STATES = [(STATE_PENDING, 'Pending'),
 def _get_celery_user_config():
     user = (os.environ.get('ODOO_CELERY_USER') or config.misc.get("celery", {}).get('user'))
     password = (os.environ.get('ODOO_CELERY_PASSWORD') or config.misc.get("celery", {}).get('password'))
-    return (user, password)
+    sudo = (os.environ.get('ODOO_CELERY_SUDO') or config.misc.get("celery", {}).get('sudo'))
+    return (user, password, sudo)
 
 
 class CeleryTask(models.Model):
     _name = 'celery.task'
     _description = 'Celery Task'
-    _inherit = ['mail.thread']
+    # TODO Configure "Celery" group to access mail_thread ?
+    #_inherit = ['mail.thread']
     _rec_name = 'uuid'
     _order = 'create_date DESC'
 
@@ -71,7 +73,7 @@ class CeleryTask(models.Model):
     def call_task(self, _model_name, _method_name, _record_ids=None, **kwargs):
         """ Call Task dispatch to the Celery interface. """
 
-        user, password = _get_celery_user_config()
+        user, password, sudo = _get_celery_user_config()
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
         if not user_id:
             msg = _('The user "%s" doesn\'t exist.') % user
@@ -108,24 +110,27 @@ class CeleryTask(models.Model):
 
     @api.model
     def run_task(self, task_uuid, _model_name, _method_name, *args, **kwargs):
-        """ Run/execute the task, which is a model method.
+        """Run/execute the task, which is a model method.
 
         The idea is that Celery calls this by Odoo its external API,
         whereas XML-RPC or a HTTP-controller.
 
-        The model method is called as administator (user), to
-        circumvent model-access configuration for models which
-        run/process task.  Maybe change this in the futue by a
-        parameter/setting? """
+        The model-method can either be called as user:
+        - The "celery" (Odoo user) defined in the odoo.conf. This is the default, in case
+        the "sudo" setting isn't configured in the odoo.conf.
+        - "admin" (Odoo admin user), to circumvent model-access configuration for models
+        which run/process task. Therefor add "sudo = True" in the odoo.conf (see: example.odoo.conf).
+        """
         
         exist = self.search_count([('uuid', '=', task_uuid)])
         if exist == 0:
             msg = "Task doesn't exist (anymore). Task-UUID: %s" % task_uuid
             logger.error(msg)
             return (TASK_NOT_FOUND, msg)
-        
-        model = self.env[_model_name].sudo()
+
+        model = self.env[_model_name]
         task = self.search([('uuid', '=', task_uuid)], limit=1)
+        user, password, sudo = _get_celery_user_config()
 
         # TODO
         # Re-raise Exception if not called by XML-RPC, but directly from model/Odoo.
@@ -137,12 +142,18 @@ class CeleryTask(models.Model):
             env = api.Environment(cr, self._uid, {})
             try:
                 vals.update({'state': STATE_STARTED, 'started_date': fields.Datetime.now()})
-                res = getattr(model.with_env(env), _method_name)(task_uuid, **kwargs)
+                
+                if bool(sudo) and sudo:
+                    res = getattr(model.with_env(env).sudo(), _method_name)(task_uuid, **kwargs)
+                else:
+                    res = getattr(model.with_env(env), _method_name)(task_uuid, **kwargs)
+                
                 if isinstance(res, dict):
                     result = res.get('result', True)
                     vals.update({'result': result, 'res_model': res.get('res_model'), 'res_ids': res.get('res_ids')})
                 else:
                     result = res
+                
                 vals.update({'state': STATE_SUCCESS, 'state_date': fields.Datetime.now(), 'result': result})
             except Exception as e:
                 """ The Exception-handler does a rollback. So we need a new
@@ -169,7 +180,7 @@ class CeleryTask(models.Model):
 
     @api.multi
     def requeue(self):
-        user, password = _get_celery_user_config()
+        user, password, sudo = _get_celery_user_config()
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
         user_id = user_id[0]['id']
 

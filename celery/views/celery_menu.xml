@@ -6,7 +6,6 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
     <data>
         <menuitem id="menu_celery_root"
                   name="Celery"
-                  sequence="10"
                   web_icon="celery,static/description/icon.png"/>
         <!-- groups="celery.group_celery_manager"/> -->
 
