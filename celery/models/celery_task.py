@@ -92,7 +92,7 @@ class CeleryTask(models.Model):
                     'method_name': _method_name,
                     'record_ids': _record_ids,
                     'kwargs': kwargs})
-                self._celery_call_task(user_id, password, res.uuid, _model_name, _method_name, kwargs=kwargs)
+                self._celery_call_task(user_id, password, res.uuid, _model_name, _method_name, **kwargs)
             except CeleryCallTaskException as e:
                 logger.error(_('ERROR FROM call_task %s: %s') % (res.uuid, e))
                 cr.rollback()
