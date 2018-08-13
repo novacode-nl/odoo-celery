@@ -49,7 +49,6 @@ class CeleryTask(models.Model):
     company_id = fields.Many2one('res.company', string='Company', index=True, readonly=True)
     model_name = fields.Char(string='Model', readonly=True)
     method_name = fields.Char(string='Task', readonly=True)
-    record_ids = fields.Serialized(readonly=True)
     kwargs = fields.Serialized(readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
     state_date = fields.Datetime(string='State Time', readonly=True)
@@ -70,7 +69,7 @@ class CeleryTask(models.Model):
     res_model = fields.Char(string='Related Model', readonly=True)
     res_ids = fields.Serialized(string='Related Ids', readonly=True)
 
-    def call_task(self, _model_name, _method_name, _record_ids=None, **kwargs):
+    def call_task(self, _model_name, _method_name, **kwargs):
         """ Call Task dispatch to the Celery interface. """
 
         user, password, sudo = _get_celery_user_config()
@@ -90,7 +89,6 @@ class CeleryTask(models.Model):
                     'user_id': user_id,
                     'model_name': _model_name,
                     'method_name': _method_name,
-                    'record_ids': _record_ids,
                     'kwargs': kwargs})
                 self._celery_call_task(user_id, password, res.uuid, _model_name, _method_name, **kwargs)
             except CeleryCallTaskException as e:
