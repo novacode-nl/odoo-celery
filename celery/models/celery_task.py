@@ -4,6 +4,8 @@
 
 import logging
 import os
+import sys
+import traceback
 import uuid
 
 from odoo import api, fields, models, registry, _
@@ -53,6 +55,7 @@ class CeleryTask(models.Model):
     started_date = fields.Datetime(string='Start Time', readonly=True)
     state_date = fields.Datetime(string='State Time', readonly=True)
     result = fields.Text(string='Result', readonly=True)
+    exc_info = fields.Text(string='Exception Info', readonly=True)
     state = fields.Selection(
         STATES,
         string="State",
@@ -160,9 +163,12 @@ class CeleryTask(models.Model):
                 # - Could STATE_RETRY be set here?
                 # Possibile retry(s) could be registered somewhere, e.g. in the task/model object?
                 # - Add (exc)trace to task record.
-                result = "%s: %s" % (type(e).__name__, e)
-                vals.update({'state': STATE_FAILURE, 'state_date': fields.Datetime.now(), 'result': result})
-                logger.error(_('ERROR FROM run_task %s: %s') % (task_uuid, e))
+                exc_info = traceback.format_exc()
+                vals.update({
+                    'state': STATE_FAILURE,
+                    'state_date': fields.Datetime.now(),
+                    'exc_info': exc_info})
+                logger.error('ERROR FROM run_task {uuid}: {exc_info}'.format(uuid=task_uuid, exc_info=exc_info))
                 cr.rollback()
             finally:
                 with registry(self._cr.dbname).cursor() as result_cr:
