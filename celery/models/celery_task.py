@@ -190,7 +190,7 @@ class CeleryTask(models.Model):
         for task in self:
             task.set_state_pending()
             try:
-                self._celery_call_task(user_id, password, task.uuid, task.model_name, task.method_name, kwargs=task.kwargs)
+                self._celery_call_task(user_id, password, task.uuid, task.model_name, task.method_name, **task.kwargs)
             except CeleryCallTaskException as e:
                 logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
         return True
