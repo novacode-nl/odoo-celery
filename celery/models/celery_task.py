@@ -2,6 +2,7 @@
 # Copyright 2018 Nova Code (http://www.novacode.nl)
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
+import copy
 import logging
 import os
 import traceback
@@ -26,8 +27,8 @@ STATE_SUCCESS = 'SUCCESS'
 
 STATES = [(STATE_PENDING, 'Pending'),
           (STATE_STARTED, 'Started'),
-          (STATE_RETRY, 'Retry'),
           (STATE_FAILURE, 'Failure'),
+          (STATE_RETRY, 'Retry'),
           (STATE_SUCCESS, 'Success')]
 
 def _get_celery_user_config():
@@ -71,6 +72,18 @@ class CeleryTask(models.Model):
     res_model = fields.Char(string='Related Model', readonly=True)
     res_ids = fields.Serialized(string='Related Ids', readonly=True)
 
+    # Celery Retry Policy
+    # http://docs.celeryproject.org/en/latest/userguide/calling.html#retry-policy
+    retry = fields.Boolean(default=True)
+    max_retries = fields.Integer() # Don't default here (Celery already does)
+    retry_interval_start = fields.Float(
+        help='Defines the number of seconds (float or integer) to wait between retries. '\
+        'Default is 0 (the first retry will be instantaneous).') # Don't default here (Celery already does)
+    interval_step = fields.Float(
+        help='On each consecutive retry this number will be added to the retry delay (float or integer). '\
+        'Default is 0.2.') # Don't default here (Celery already does)
+    countdown = fields.Integer(help='ETA by seconds into the future. Also used in the retry.')
+
     def call_task(self, _model_name, _method_name, **kwargs):
         """ Call Task dispatch to the Celery interface. """
 
@@ -82,31 +95,65 @@ class CeleryTask(models.Model):
             return False
         
         user_id = user_id[0]['id']
+        vals = {
+            'uuid': str(uuid.uuid4()),
+            'user_id': user_id,
+            'model_name': _model_name,
+            'method_name': _method_name}
 
+        if kwargs.get('celery'):
+            celery_kwargs = kwargs.get('celery')
+            vals.update(celery_kwargs)
+            # We don't want to pass these to _call_celery_task (apply_async) anymore.
+            # Our supported apply_async parameters/options shall be stored in the Task model-record.
+            del kwargs['celery']
+
+        # Add the task (method/implementation) kwargs, needed in the run_task model/method.
+        vals['kwargs'] = kwargs
+        
         with registry(self._cr.dbname).cursor() as cr:
             env = api.Environment(cr, user_id, {})
             try:
-                res = self.with_env(env).create({
-                    'uuid': str(uuid.uuid4()),
-                    'user_id': user_id,
-                    'model_name': _model_name,
-                    'method_name': _method_name,
-                    'kwargs': kwargs})
-                self._celery_call_task(user_id, password, res.uuid, _model_name, _method_name, **kwargs)
+                task = self.with_env(env).create(vals)
+                task._celery_call_task()
             except CeleryCallTaskException as e:
-                logger.error(_('ERROR FROM call_task %s: %s') % (res.uuid, e))
+                logger.error(_('ERROR FROM call_task %s: %s') % (task.uuid, e))
                 cr.rollback()
             except Exception as e:
-                logger.error(_('ERROR FROM call_task: %s') % (e))
+                logger.error(_('UNKNOWN ERROR FROM call_task: %s') % (e))
                 cr.rollback()
 
-    @api.model
-    def _celery_call_task(self, user_id, password, uuid, _model_name, _method_name, **kwargs):
-        try:
-            url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-            call_task.apply_async(args=[url, self._cr.dbname, user_id, password, uuid, _model_name, _method_name], kwargs=kwargs)
-        except Exception as e:
-            raise CeleryCallTaskException
+    @api.multi
+    def _celery_call_task(self):
+        self.ensure_one()
+        user, password, sudo = _get_celery_user_config()
+        url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        _args = [url, self._cr.dbname, self.user_id.id, password, self.uuid, self.model_name, self.method_name]
+
+        # Copy kwargs to update with more (Celery) info.
+        kwargs = self.kwargs
+
+        if self.retry:
+            retry_policy = {}
+            if self.max_retries:
+                retry_policy['max_retries'] = self.max_retries
+            if self.retry_interval_start:
+                retry_policy['interval_start'] = self.retry_interval_start
+            if self.interval_step:
+                retry_policy['interval_step'] = self.interval_step
+
+            # Provide kwargs with the Celery Task Parameters.
+            kwargs['celery'] = {
+                'retry': True,
+                'retry_policy': retry_policy
+            }
+            if self.countdown:
+                kwargs['celery']['countdown'] = self.countdown
+            # Call Celery Task.
+            call_task.apply_async(args=_args, kwargs=kwargs, retry=self.retry, retry_policy=retry_policy)
+        else:
+            # Call Celery Task.
+            call_task.apply_async(args=_args, kwargs=self.kwargs)
 
     @api.model
     def run_task(self, task_uuid, _model_name, _method_name, *args, **kwargs):
@@ -129,32 +176,40 @@ class CeleryTask(models.Model):
             return (TASK_NOT_FOUND, msg)
 
         model = self.env[_model_name]
-        task = self.search([('uuid', '=', task_uuid)], limit=1)
+        task = self.search([('uuid', '=', task_uuid), ('state', 'in', [STATE_PENDING, STATE_RETRY, STATE_FAILURE])], limit=1)
+
+        # Start / Retry (refactor to absraction/neater code)
+        celery_retry = kwargs.get('celery_retry')
+        if celery_retry and task.celery_retry and task.state == STATE_RETRY:
+            return (STATE_RETRY, 'Task is already executing a retry.')
+        elif celery_retry and task.celery_retry:
+            task.state = STATE_RETRY
+            vals = {'state': STATE_RETRY, 'state_date': fields.Datetime.now()}
+        else:
+            vals = {'state': STATE_STARTED, 'started_date': fields.Datetime.now()}
+
         user, password, sudo = _get_celery_user_config()
 
         # TODO
         # Re-raise Exception if not called by XML-RPC, but directly from model/Odoo.
         # This supports unit-tests and scripting purposes.
-        vals = {}
         result = False
+        response = False
         with registry(self._cr.dbname).cursor() as cr:
             # Transaction/cursror for the exception handler.
             env = api.Environment(cr, self._uid, {})
             try:
-                vals.update({'state': STATE_STARTED, 'started_date': fields.Datetime.now()})
-                
                 if bool(sudo) and sudo:
                     res = getattr(model.with_env(env).sudo(), _method_name)(task_uuid, **kwargs)
                 else:
                     res = getattr(model.with_env(env), _method_name)(task_uuid, **kwargs)
-                
+
                 if isinstance(res, dict):
                     result = res.get('result', True)
-                    vals.update({'result': result, 'res_model': res.get('res_model'), 'res_ids': res.get('res_ids')})
+                    vals.update({'res_model': res.get('res_model'), 'res_ids': res.get('res_ids')})
                 else:
                     result = res
-                
-                vals.update({'state': STATE_SUCCESS, 'state_date': fields.Datetime.now(), 'result': result})
+                vals.update({'state': STATE_SUCCESS, 'state_date': fields.Datetime.now(), 'result': result, 'exc_info': False})
             except Exception as e:
                 """ The Exception-handler does a rollback. So we need a new
                 transaction/cursor to store data about Failure. """
@@ -163,17 +218,15 @@ class CeleryTask(models.Model):
                 # Possibile retry(s) could be registered somewhere, e.g. in the task/model object?
                 # - Add (exc)trace to task record.
                 exc_info = traceback.format_exc()
-                vals.update({
-                    'state': STATE_FAILURE,
-                    'state_date': fields.Datetime.now(),
-                    'exc_info': exc_info})
+                vals.update({'state': STATE_FAILURE, 'state_date': fields.Datetime.now(), 'exc_info': exc_info})
                 logger.error('ERROR FROM run_task {uuid}: {exc_info}'.format(uuid=task_uuid, exc_info=exc_info))
                 cr.rollback()
             finally:
                 with registry(self._cr.dbname).cursor() as result_cr:
                     env = api.Environment(result_cr, self._uid, {})
                     task.with_env(env).write(vals)
-                return (vals.get('state'), result)
+                response = (vals.get('state'), result)
+                return response
 
     def set_state_pending(self):
         self.state = STATE_PENDING
@@ -190,7 +243,7 @@ class CeleryTask(models.Model):
         for task in self:
             task.set_state_pending()
             try:
-                self._celery_call_task(user_id, password, task.uuid, task.model_name, task.method_name, **task.kwargs)
+                task._celery_call_task()
             except CeleryCallTaskException as e:
                 logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
         return True

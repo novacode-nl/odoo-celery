@@ -49,14 +49,29 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                 <field name="user_id"/>
                             </group>
                         </group>
-                        <group name="result" string="Result" attrs="{'invisible': [('result', '=', False)]}">
-                            <field nolabel="1" name="result"/>
-                        </group>
-                        <group name="exc_info" string="Exception Information" attrs="{'invisible': [('exc_info', '=', False)]}">
-                            <code>
-                                <field nolabel="1" name="exc_info"/>
-                            </code>
-                        </group>
+                        <notebook>
+                            <page name="result" string="Result" attrs="{'invisible': [('result', '=', False)]}">
+                                <group>
+                                    <field nolabel="1" name="result"/>
+                                </group>
+                            </page>
+                            <page name="exc_info" string="Exception Information" attrs="{'invisible': [('exc_info', '=', False)]}">
+                                <group>
+                                    <code>
+                                        <field nolabel="1" name="exc_info"/>
+                                    </code>
+                                </group>
+                            </page>
+                            <page name="params" string="Parameters">
+                                <group>
+                                    <field name="retry"/>
+                                    <field name="max_retries"/>
+                                    <field name="countdown"/>
+                                    <field name="retry_interval_start"/>
+                                    <field name="interval_step"/>
+                                </group>
+                            </page>
+                        </notebook>
                     </sheet>
 		</form>
 	    </field>
@@ -123,6 +138,6 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             <field name="view_id" ref="view_requeue_celery_task"/>
             <field name="target">new</field>
             <field name="binding_model_id" ref="celery.model_celery_task"/>
-    </record>
+        </record>
     </data>
 </odoo>
