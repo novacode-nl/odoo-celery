@@ -108,7 +108,7 @@ class CeleryTask(models.Model):
             # Our supported apply_async parameters/options shall be stored in the Task model-record.
             del kwargs['celery']
 
-        # Add the task (method/implementation) kwargs, needed in the run_task model/method.
+        # Add the task (method/implementation) kwargs, needed in the rpc_run_task model/method.
         vals['kwargs'] = kwargs
         
         with registry(self._cr.dbname).cursor() as cr:
@@ -156,7 +156,7 @@ class CeleryTask(models.Model):
             call_task.apply_async(args=_args, kwargs=self.kwargs)
 
     @api.model
-    def run_task(self, task_uuid, _model_name, _method_name, *args, **kwargs):
+    def rpc_run_task(self, task_uuid, _model_name, _method_name, *args, **kwargs):
         """Run/execute the task, which is a model method.
 
         The idea is that Celery calls this by Odoo its external API,
@@ -178,9 +178,12 @@ class CeleryTask(models.Model):
         model = self.env[_model_name]
         task = self.search([('uuid', '=', task_uuid), ('state', 'in', [STATE_PENDING, STATE_RETRY, STATE_FAILURE])], limit=1)
 
+        if not task:
+            return ('OK', 'Task already processed')
+
         # Start / Retry (refactor to absraction/neater code)
         celery_retry = kwargs.get('celery_retry')
-        if celery_retry and task.celery_retry and task.state == STATE_RETRY:
+        if celery_retry and task.retry and task.state == STATE_RETRY:
             return (STATE_RETRY, 'Task is already executing a retry.')
         elif celery_retry and task.celery_retry:
             task.state = STATE_RETRY
@@ -212,14 +215,11 @@ class CeleryTask(models.Model):
                 vals.update({'state': STATE_SUCCESS, 'state_date': fields.Datetime.now(), 'result': result, 'exc_info': False})
             except Exception as e:
                 """ The Exception-handler does a rollback. So we need a new
-                transaction/cursor to store data about Failure. """
-                # TODO
-                # - Could STATE_RETRY be set here?
-                # Possibile retry(s) could be registered somewhere, e.g. in the task/model object?
-                # - Add (exc)trace to task record.
+                transaction/cursor to store data about RETRY and exception info/traceback. """
+
                 exc_info = traceback.format_exc()
-                vals.update({'state': STATE_FAILURE, 'state_date': fields.Datetime.now(), 'exc_info': exc_info})
-                logger.error('ERROR FROM run_task {uuid}: {exc_info}'.format(uuid=task_uuid, exc_info=exc_info))
+                vals.update({'state': STATE_RETRY, 'state_date': fields.Datetime.now(), 'exc_info': exc_info})
+                logger.error('Start retry... Error from rpc_run_task {uuid}: {exc_info}'.format(uuid=task_uuid, exc_info=exc_info))
                 cr.rollback()
             finally:
                 with registry(self._cr.dbname).cursor() as result_cr:
@@ -227,6 +227,30 @@ class CeleryTask(models.Model):
                     task.with_env(env).write(vals)
                 response = (vals.get('state'), result)
                 return response
+
+    @api.model
+    def rpc_set_state(self, task_uuid, state):
+        """Set state of task, which is a model method.
+
+        The idea is that Celery calls this by Odoo its external API,
+        whereas XML-RPC or a HTTP-controller.
+        """
+        # TODO DRY: Also in rpc_run_task.
+        # Move into separate method.
+        exist = self.search_count([('uuid', '=', task_uuid)])
+        if exist == 0:
+            msg = "Task doesn't exist (anymore). Task-UUID: %s" % task_uuid
+            logger.error(msg)
+            return (TASK_NOT_FOUND, msg)
+        
+        task = self.search([('uuid', '=', task_uuid), ('state', '!=', state)], limit=1)
+        if task:
+            task.state = state
+            msg = 'Update task state to: {state}'.format(state=state)
+            return ('OK', msg)
+        else:
+            msg = 'Task already in state {state}.'.format(state=state)
+            return ('OK', msg)
 
     def set_state_pending(self):
         self.state = STATE_PENDING

@@ -12,16 +12,17 @@ logger = get_task_logger(__name__)
 
 OK_CODE = 'OK'
 
-# Some (STATE)codes synchronzed with the [celery.task] model
-TASK_NOT_FOUND = 'NOT_FOUND'
+# STATES (checks) should match with [celery.task] model!
+STATE_RETRY = 'RETRY'
 STATE_FAILURE = 'FAILURE'
+TASK_NOT_FOUND = 'NOT_FOUND'
 
 
 class TaskNotFoundInOdoo(TaskError):
     """The task doesn't exist (anymore) in Odoo (Celery Task model)."""
 
 class RunTaskFailure(TaskError):
-    """Error from run_task in Odoo."""
+    """Error from rpc_run_task in Odoo."""
 
 
 app = Celery('odoo.addons.celery')
@@ -36,7 +37,7 @@ def call_task(self, url, db, user_id, password, task_uuid, _model_name, _method_
     logger.info('{task_name} celery_params: {celery_params}'.format(task_name=self.name, celery_params=_celery_params))
 
     try:
-        response = odoo.execute_kw(db, user_id, password, 'celery.task', 'run_task', args, kwargs)
+        response = odoo.execute_kw(db, user_id, password, 'celery.task', 'rpc_run_task', args, kwargs)
 
         if (isinstance(response, tuple) or isinstance(response, list)) and len(response) == 2:
             code = response[0]
@@ -48,7 +49,7 @@ def call_task(self, url, db, user_id, password, task_uuid, _model_name, _method_
         if code == TASK_NOT_FOUND:
             msg = "%s, database: %s" % (result, db)
             raise TaskNotFoundInOdoo(msg)
-        elif code == STATE_FAILURE:
+        elif code in (STATE_RETRY, STATE_FAILURE):
             retry = _celery_params.get('retry')
             retry_policy = _celery_params.get('retry_policy')
             
@@ -67,8 +68,7 @@ def call_task(self, url, db, user_id, password, task_uuid, _model_name, _method_
                 logger.info('{task_name} retry params: {params}'.format(task_name=self.name, params=params))
                 raise self.retry(**params)
             else:
-                msg = "%s, database: %s" % (result, db)
-                raise RunTaskFailure(msg)
+                raise self.retry(max_retries=1, countdown=1)
         else:
             return (code, result)
     except Exception as e:
@@ -93,9 +93,16 @@ def call_task(self, url, db, user_id, password, task_uuid, _model_name, _method_
             # TODO
             # After implementation of "Hide sensitive data (password) by argspec/kwargspec, a re-raise should happen.
             # For now it shows sensitive data in the logs.
-            msg = '[TODO] Catched MaxRetriesExceededError: Odoo {db} (task: {uuid}, model: {model}, method: {method}).'.format(
+            msg = '[TODO] Failure (caught) MaxRetriesExceededError: db: {db}, task: {uuid}, model: {model}, method: {method}.'.format(
                 db=db, uuid=task_uuid, model=_model_name, method=_method_name)
             logger.error(msg)
+            # Task is probably in state RETRY. Now set it to FAILURE.
+            args = [task_uuid, 'FAILURE']
+            odoo.execute_kw(db, user_id, password, 'celery.task', 'rpc_set_state', args)
         elif not isinstance(e, Retry) and not isinstance(e, xmlrpc_client.Fault):
-            # Necessary to implement a retry() ?
+            # Maybe there's a way the send the xmlrpc.client.Fault into the Odoo exc_info field e.g.:
+            # args = [xmlrpc_client.Fault.faultCode, xmlrpc_client.Fault.faultString]
+            # odoo.execute_kw(db, user_id, password, 'celery.task', 'rpc_set_exception', args)
+            #
+            # Necessary to implement/call a retry() for other exceptions ?
             raise e
