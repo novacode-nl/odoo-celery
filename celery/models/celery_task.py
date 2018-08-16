@@ -27,8 +27,8 @@ STATE_SUCCESS = 'SUCCESS'
 
 STATES = [(STATE_PENDING, 'Pending'),
           (STATE_STARTED, 'Started'),
-          (STATE_FAILURE, 'Failure'),
           (STATE_RETRY, 'Retry'),
+          (STATE_FAILURE, 'Failure'),
           (STATE_SUCCESS, 'Success')]
 
 def _get_celery_user_config():
