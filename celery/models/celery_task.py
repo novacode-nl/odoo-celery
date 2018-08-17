@@ -204,7 +204,7 @@ class CeleryTask(models.Model):
             env = api.Environment(cr, self._uid, {})
             try:
                 if bool(sudo) and sudo:
-                    res = getattr(model_obk.with_env(env).sudo(), method)(task_uuid, **kwargs)
+                    res = getattr(model_obj.with_env(env).sudo(), method)(task_uuid, **kwargs)
                 else:
                     res = getattr(model_obj.with_env(env), method)(task_uuid, **kwargs)
 
