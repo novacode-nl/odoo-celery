@@ -28,13 +28,15 @@ class RunTaskFailure(TaskError):
 app = Celery('odoo.addons.celery')
 
 @app.task(name='odoo.addons.celery.odoo.call_task', bind=True)
-def call_task(self, url, db, user_id, password, task_uuid, _model_name, _method_name, **kwargs):
+def call_task(self, url, db, user_id, password, task_uuid, model, method, **kwargs):
     odoo = xmlrpc_client.ServerProxy('{}/xmlrpc/2/object'.format(url))
-    args = [task_uuid, _model_name, _method_name]
+    args = [task_uuid, model, method]
     _celery_params = kwargs.get('celery')
-    
-    logger.info('{task_name} kwargs: {kwargs}'.format(task_name=self.name, kwargs=kwargs))
-    logger.info('{task_name} celery_params: {celery_params}'.format(task_name=self.name, celery_params=_celery_params))
+
+    logger.info('{model} {method} - celery.task uuid: {uuid}'.format(
+        model=model, method=method, uuid=task_uuid))
+    logger.info('{model} {method} - kwargs: {kwargs}'.format(
+        model=model, method=method, kwargs=kwargs))
 
     try:
         response = odoo.execute_kw(db, user_id, password, 'celery.task', 'rpc_run_task', args, kwargs)
@@ -55,7 +57,7 @@ def call_task(self, url, db, user_id, password, task_uuid, _model_name, _method_
             
             if retry and retry_policy:
                 msg = 'Retry task... Failure from Odoo {db} (task: {uuid}, model: {model}, method: {method}).'.format(
-                    db=db, uuid=task_uuid, model=_model_name, method=_method_name)
+                    db=db, uuid=task_uuid, model=model, method=method)
                 logger.info(msg)
 
                 params = {}
@@ -94,7 +96,7 @@ def call_task(self, url, db, user_id, password, task_uuid, _model_name, _method_
             # After implementation of "Hide sensitive data (password) by argspec/kwargspec, a re-raise should happen.
             # For now it shows sensitive data in the logs.
             msg = '[TODO] Failure (caught) MaxRetriesExceededError: db: {db}, task: {uuid}, model: {model}, method: {method}.'.format(
-                db=db, uuid=task_uuid, model=_model_name, method=_method_name)
+                db=db, uuid=task_uuid, model=model, method=method)
             logger.error(msg)
             # Task is probably in state RETRY. Now set it to FAILURE.
             args = [task_uuid, 'FAILURE']
