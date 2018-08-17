@@ -67,7 +67,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                     <field name="retry"/>
                                     <field name="max_retries"/>
                                     <field name="countdown"/>
-                                    <field name="retry_interval_start"/>
+                                    <field name="interval_start"/>
                                     <field name="interval_step"/>
                                 </group>
                             </page>

@@ -76,7 +76,7 @@ class CeleryTask(models.Model):
     # http://docs.celeryproject.org/en/latest/userguide/calling.html#retry-policy
     retry = fields.Boolean(default=True)
     max_retries = fields.Integer() # Don't default here (Celery already does)
-    retry_interval_start = fields.Float(
+    interval_start = fields.Float(
         help='Defines the number of seconds (float or integer) to wait between retries. '\
         'Default is 0 (the first retry will be instantaneous).') # Don't default here (Celery already does)
     interval_step = fields.Float(
@@ -95,65 +95,64 @@ class CeleryTask(models.Model):
             return False
         
         user_id = user_id[0]['id']
+        task_uuid = str(uuid.uuid4())
         vals = {
-            'uuid': str(uuid.uuid4()),
+            'uuid': task_uuid,
             'user_id': user_id,
             'model_name': _model_name,
-            'method_name': _method_name}
+            'method_name': _method_name,
+            # The task (method/implementation) kwargs, needed in the rpc_run_task model/method.
+            'kwargs': kwargs}
 
         if kwargs.get('celery'):
-            celery_kwargs = kwargs.get('celery')
-            vals.update(celery_kwargs)
-            # We don't want to pass these to _call_celery_task (apply_async) anymore.
-            # Our supported apply_async parameters/options shall be stored in the Task model-record.
-            del kwargs['celery']
+            # Supported apply_async parameters/options shall be stored in the Task model-record.
+            celery_vals = kwargs.get('celery')
+            vals.update(celery_vals)
 
-        # Add the task (method/implementation) kwargs, needed in the rpc_run_task model/method.
-        vals['kwargs'] = kwargs
-        
         with registry(self._cr.dbname).cursor() as cr:
             env = api.Environment(cr, user_id, {})
             try:
                 task = self.with_env(env).create(vals)
-                task._celery_call_task()
             except CeleryCallTaskException as e:
-                logger.error(_('ERROR FROM call_task %s: %s') % (task.uuid, e))
+                logger.error(_('ERROR FROM call_task %s: %s') % (task_uuid, e))
                 cr.rollback()
             except Exception as e:
                 logger.error(_('UNKNOWN ERROR FROM call_task: %s') % (e))
                 cr.rollback()
+        self._celery_call_task(user_id, task_uuid, _model_name, _method_name, kwargs)
 
-    @api.multi
-    def _celery_call_task(self):
-        self.ensure_one()
+    @api.model
+    def _celery_call_task(self, user_id, uuid, model, method, kwargs):
         user, password, sudo = _get_celery_user_config()
         url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        _args = [url, self._cr.dbname, self.user_id.id, password, self.uuid, self.model_name, self.method_name]
+        _args = [url, self._cr.dbname, user_id, password, uuid, model, method]
 
+        celery = kwargs.get('celery')
+        
         # Copy kwargs to update with more (Celery) info.
-        kwargs = self.kwargs
-
-        if self.retry:
+        if celery and celery.get('retry'):
             retry_policy = {}
-            if self.max_retries:
-                retry_policy['max_retries'] = self.max_retries
-            if self.retry_interval_start:
-                retry_policy['interval_start'] = self.retry_interval_start
-            if self.interval_step:
-                retry_policy['interval_step'] = self.interval_step
+            if celery.get('max_retries'):
+                retry_policy['max_retries'] = celery.get('max_retries')
+            if celery.get('interval_start'):
+                retry_policy['interval_start'] = celery.get('interval_start')
+            if celery.get('interval_step'):
+                retry_policy['interval_step'] = celery.get('interval_step')
 
             # Provide kwargs with the Celery Task Parameters.
             kwargs['celery'] = {
                 'retry': True,
                 'retry_policy': retry_policy
             }
-            if self.countdown:
-                kwargs['celery']['countdown'] = self.countdown
+
+            # For now used in the retry countdown (not initial call).
+            if celery.get('countdown'):
+                kwargs['celery']['countdown'] = celery.get('countdown')
             # Call Celery Task.
-            call_task.apply_async(args=_args, kwargs=kwargs, retry=self.retry, retry_policy=retry_policy)
+            call_task.apply_async(args=_args, kwargs=kwargs, retry=True, retry_policy=retry_policy)
         else:
             # Call Celery Task.
-            call_task.apply_async(args=_args, kwargs=self.kwargs)
+            call_task.apply_async(args=_args, kwargs=kwargs)
 
     @api.model
     def rpc_run_task(self, task_uuid, _model_name, _method_name, *args, **kwargs):
@@ -168,6 +167,8 @@ class CeleryTask(models.Model):
         - "admin" (Odoo admin user), to circumvent model-access configuration for models
         which run/process task. Therefor add "sudo = True" in the odoo.conf (see: example.odoo.conf).
         """
+
+        logger.info('CELERY rpc_run_task uuid {uuid}'.format(uuid=task_uuid))
         
         exist = self.search_count([('uuid', '=', task_uuid)])
         if exist == 0:
@@ -267,7 +268,7 @@ class CeleryTask(models.Model):
         for task in self:
             task.set_state_pending()
             try:
-                task._celery_call_task()
+                self._celery_call_task(task.user_id.id, task.uuid, task.model_name, task.method_name, task.kwargs)
             except CeleryCallTaskException as e:
                 logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
         return True

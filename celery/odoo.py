@@ -101,8 +101,8 @@ def call_task(self, url, db, user_id, password, task_uuid, model, method, **kwar
             # Task is probably in state RETRY. Now set it to FAILURE.
             args = [task_uuid, 'FAILURE']
             odoo.execute_kw(db, user_id, password, 'celery.task', 'rpc_set_state', args)
-        elif not isinstance(e, Retry) and not isinstance(e, xmlrpc_client.Fault):
-            # Maybe there's a way the send the xmlrpc.client.Fault into the Odoo exc_info field e.g.:
+        elif not isinstance(e, Retry):
+            # Maybe there's a also a way the store a xmlrpc.client.Fault into the Odoo exc_info field e.g.:
             # args = [xmlrpc_client.Fault.faultCode, xmlrpc_client.Fault.faultString]
             # odoo.execute_kw(db, user_id, password, 'celery.task', 'rpc_set_exception', args)
             #
