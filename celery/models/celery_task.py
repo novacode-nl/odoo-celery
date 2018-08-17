@@ -49,8 +49,8 @@ class CeleryTask(models.Model):
     uuid = fields.Char(string='UUID', readonly=True, index=True, required=True)
     user_id = fields.Many2one('res.users', string='User ID', required=True, readonly=True)
     company_id = fields.Many2one('res.company', string='Company', index=True, readonly=True)
-    model_name = fields.Char(string='Model', readonly=True)
-    method_name = fields.Char(string='Task', readonly=True)
+    model = fields.Char(string='Model', readonly=True)
+    method = fields.Char(string='Method', readonly=True)
     kwargs = fields.Serialized(readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
     state_date = fields.Datetime(string='State Time', readonly=True)
@@ -84,7 +84,7 @@ class CeleryTask(models.Model):
         'Default is 0.2.') # Don't default here (Celery already does)
     countdown = fields.Integer(help='ETA by seconds into the future. Also used in the retry.')
 
-    def call_task(self, _model_name, _method_name, **kwargs):
+    def call_task(self, model, method, **kwargs):
         """ Call Task dispatch to the Celery interface. """
 
         user, password, sudo = _get_celery_user_config()
@@ -99,8 +99,8 @@ class CeleryTask(models.Model):
         vals = {
             'uuid': task_uuid,
             'user_id': user_id,
-            'model_name': _model_name,
-            'method_name': _method_name,
+            'model': model,
+            'method': method,
             # The task (method/implementation) kwargs, needed in the rpc_run_task model/method.
             'kwargs': kwargs}
 
@@ -119,7 +119,7 @@ class CeleryTask(models.Model):
             except Exception as e:
                 logger.error(_('UNKNOWN ERROR FROM call_task: %s') % (e))
                 cr.rollback()
-        self._celery_call_task(user_id, task_uuid, _model_name, _method_name, kwargs)
+        self._celery_call_task(user_id, task_uuid, model, method, kwargs)
 
     @api.model
     def _celery_call_task(self, user_id, uuid, model, method, kwargs):
@@ -155,7 +155,7 @@ class CeleryTask(models.Model):
             call_task.apply_async(args=_args, kwargs=kwargs)
 
     @api.model
-    def rpc_run_task(self, task_uuid, _model_name, _method_name, *args, **kwargs):
+    def rpc_run_task(self, task_uuid, model, method, *args, **kwargs):
         """Run/execute the task, which is a model method.
 
         The idea is that Celery calls this by Odoo its external API,
@@ -176,7 +176,7 @@ class CeleryTask(models.Model):
             logger.error(msg)
             return (TASK_NOT_FOUND, msg)
 
-        model = self.env[_model_name]
+        model_obj = self.env[model]
         task = self.search([('uuid', '=', task_uuid), ('state', 'in', [STATE_PENDING, STATE_RETRY, STATE_FAILURE])], limit=1)
 
         if not task:
@@ -204,9 +204,9 @@ class CeleryTask(models.Model):
             env = api.Environment(cr, self._uid, {})
             try:
                 if bool(sudo) and sudo:
-                    res = getattr(model.with_env(env).sudo(), _method_name)(task_uuid, **kwargs)
+                    res = getattr(model_obk.with_env(env).sudo(), method)(task_uuid, **kwargs)
                 else:
-                    res = getattr(model.with_env(env), _method_name)(task_uuid, **kwargs)
+                    res = getattr(model_obj.with_env(env), method)(task_uuid, **kwargs)
 
                 if isinstance(res, dict):
                     result = res.get('result', True)
@@ -268,7 +268,7 @@ class CeleryTask(models.Model):
         for task in self:
             task.set_state_pending()
             try:
-                self._celery_call_task(task.user_id.id, task.uuid, task.model_name, task.method_name, task.kwargs)
+                self._celery_call_task(task.user_id.id, task.uuid, task.model, task.method, task.kwargs)
             except CeleryCallTaskException as e:
                 logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
         return True
