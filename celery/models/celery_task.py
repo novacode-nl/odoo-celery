@@ -84,6 +84,13 @@ class CeleryTask(models.Model):
         'Default is 0.2.') # Don't default here (Celery already does)
     countdown = fields.Integer(help='ETA by seconds into the future. Also used in the retry.')
 
+    @api.multi
+    def unlink(self):
+        for task in self:
+            if task.state in [STATE_STARTED, STATE_RETRY]:
+                raise UserError(_('You cannot delete a running task.'))
+        super(CeleryTask, self).unlink()
+
     def call_task(self, model, method, **kwargs):
         """ Call Task dispatch to the Celery interface. """
 
@@ -220,7 +227,8 @@ class CeleryTask(models.Model):
 
                 exc_info = traceback.format_exc()
                 vals.update({'state': STATE_RETRY, 'state_date': fields.Datetime.now(), 'exc_info': exc_info})
-                logger.error('Start retry... Error from rpc_run_task {uuid}: {exc_info}'.format(uuid=task_uuid, exc_info=exc_info))
+                logger.warning('Retry... exception (see task form) from rpc_run_task {uuid}: {exc}.'.format(uuid=task_uuid, exc=e))
+                logger.debug('Exception rpc_run_task: {exc_info}'.format(uuid=task_uuid, exc_info=exc_info))
                 cr.rollback()
             finally:
                 with registry(self._cr.dbname).cursor() as result_cr:

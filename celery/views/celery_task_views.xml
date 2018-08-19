@@ -9,7 +9,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	    <field name="model">celery.task</field>
 	    <field name="type">tree</field>
 	    <field name="arch" type="xml">
-		<tree string="Celery Tasks" create="false" delete="false"
+		<tree string="Celery Tasks" create="false"
                       decoration-muted="state == 'SUCCESS'" decoration-danger="state == 'FAILURE'">
 		    <field name="uuid"/>
                     <field name="model"/>
