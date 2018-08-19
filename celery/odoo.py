@@ -39,6 +39,17 @@ def call_task(self, url, db, user_id, password, task_uuid, model, method, **kwar
         model=model, method=method, kwargs=kwargs))
 
     try:
+        logger.info(
+            'XML-RPC to Odoo server:\n\n'
+            '- url: {url}\n'
+            '- db: {db}\n'
+            '- user_id: {user_id}\n'
+            '- task_uuid: {task_uuid}\n'
+            '- model: celery.task\n'
+            '- method: rpc_run_task\n'
+            '- args: {args}\n'
+            '- kwargs {kwargs}\n'.format(
+                url=url, db=db, user_id=user_id, task_uuid=task_uuid, model=model, method=method, args=args, kwargs=kwargs))
         response = odoo.execute_kw(db, user_id, password, 'celery.task', 'rpc_run_task', args, kwargs)
 
         if (isinstance(response, tuple) or isinstance(response, list)) and len(response) == 2:
@@ -107,4 +118,8 @@ def call_task(self, url, db, user_id, password, task_uuid, model, method, **kwar
             # odoo.execute_kw(db, user_id, password, 'celery.task', 'rpc_set_exception', args)
             #
             # Necessary to implement/call a retry() for other exceptions ?
+            msg = '{exception}\n'\
+                  '=> SUGGESTIONS: Check former XML-RPC log messages. '\
+                  'Check the Celery params in the Odoo configuration.\n'.format(exception=e)
+            logger.error(msg)
             raise e
