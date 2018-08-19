@@ -310,6 +310,10 @@ class CeleryTask(models.Model):
             })
         return action
 
+    @api.multi
+    def refresh_view(self):
+        return True
+
 
 class RequeueTask(models.TransientModel):
     _name = 'celery.requeue.task'

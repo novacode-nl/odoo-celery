@@ -35,6 +35,8 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                         <field name="state" widget="statusbar"/>
                     </header>
                     <sheet>
+                        <!-- fa-retweet (icon): because fontawesome fa-refresh isn't available in Odoo yet. -->
+                        <button name="refresh_view" class="pull-right" type="object" icon="fa-retweet">Refresh view</button>
                         <field name="res_model" invisible="1"/>
                         <group>
                             <group>
