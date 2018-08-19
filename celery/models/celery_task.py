@@ -266,6 +266,7 @@ class CeleryTask(models.Model):
         self.started_date = None
         self.state_date = None
         self.result = None
+        self.exc_info = None
 
     @api.multi
     def requeue(self):

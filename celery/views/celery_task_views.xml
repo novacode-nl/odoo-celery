@@ -57,8 +57,12 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                     <field nolabel="1" name="result"/>
                                 </group>
                             </page>
-                            <page name="exc_info" string="Exception Information" attrs="{'invisible': [('exc_info', '=', False)]}">
-                                <group>
+                            <page name="exc_info" string="Retry/Failure Information">
+                                <div attrs="{'invisible': [('exc_info', '!=', False)]}">
+                                    <p>No Retry/Failure has occurred on this moment.</p>
+                                    <p>Update the information by refreshing this view (button above).</p>
+                                </div>
+                                <group attrs="{'invisible': [('exc_info', '=', False)]}">
                                     <code>
                                         <field nolabel="1" name="exc_info"/>
                                     </code>
