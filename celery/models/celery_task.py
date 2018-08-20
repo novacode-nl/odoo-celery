@@ -156,7 +156,7 @@ class CeleryTask(models.Model):
             if celery.get('countdown'):
                 kwargs['celery']['countdown'] = celery.get('countdown')
             # Call Celery Task.
-            call_task.apply_async(args=_args, kwargs=kwargs, retry=True, retry_policy=retry_policy)
+            call_task.apply_async(args=_args, kwargs=kwargs, **kwargs['celery'])
         else:
             # Call Celery Task.
             call_task.apply_async(args=_args, kwargs=kwargs)
@@ -272,6 +272,9 @@ class CeleryTask(models.Model):
     def requeue(self):
         user, password, sudo = _get_celery_user_config()
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
+
+        if not user_id:
+            raise UserError('No user found with login: {login}'.format(login=user))
         user_id = user_id[0]['id']
 
         for task in self:
