@@ -91,6 +91,7 @@ class CeleryTask(models.Model):
                 raise UserError(_('You cannot delete a running task.'))
         super(CeleryTask, self).unlink()
 
+    @api.model
     def call_task(self, model, method, **kwargs):
         """ Call Task dispatch to the Celery interface. """
 
@@ -214,6 +215,11 @@ class CeleryTask(models.Model):
                     res = getattr(model_obj.with_env(env).sudo(), method)(task_uuid, **kwargs)
                 else:
                     res = getattr(model_obj.with_env(env), method)(task_uuid, **kwargs)
+
+                if not bool(res):
+                    msg = "No result/return value for Task UUID: %s. Ensure the task-method returns a value." % task_uuid
+                    logger.error(msg)
+                    raise CeleryTaskNoResultError(msg)
 
                 if isinstance(res, dict):
                     result = res.get('result', True)
@@ -341,4 +347,8 @@ class RequeueTask(models.TransientModel):
 
 
 class CeleryCallTaskException(Exception):
+    """ CeleryCallTaskException """
+
+
+class CeleryTaskNoResultError(Exception):
     """ CeleryCallTaskException """
