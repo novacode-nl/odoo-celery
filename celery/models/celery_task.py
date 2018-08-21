@@ -335,10 +335,15 @@ class RequeueTask(models.TransientModel):
         context = self.env.context
         if (context.get('active_model') == 'celery.task' and
                 context.get('active_ids')):
-            res = context['active_ids']
+            task_ids = context['active_ids']
+            res = self.env['celery.task'].search([
+                ('id', 'in', context['active_ids']),
+                ('state', 'in', ['PENDING', 'RETRY', 'FAILURE'])]).ids
         return res
 
-    task_ids = fields.Many2many('celery.task', string='Tasks', default=_default_task_ids)
+    task_ids = fields.Many2many(
+        'celery.task', string='Tasks', default=_default_task_ids,
+        domain=[('state', 'in', ['PENDING', 'RETRY', 'FAILURE'])])
 
     @api.multi
     def requeue(self):
