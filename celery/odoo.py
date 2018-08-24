@@ -63,11 +63,15 @@ def call_task(self, url, db, user_id, password, task_uuid, model, method, **kwar
             msg = "%s, database: %s" % (result, db)
             raise TaskNotFoundInOdoo(msg)
         elif code in (STATE_RETRY, STATE_FAILURE):
-            retry = _celery_params.get('retry')
-            retry_policy = _celery_params.get('retry_policy')
+            if _celery_params:
+                retry = _celery_params.get('retry')
+                retry_policy = _celery_params.get('retry_policy')
+            else:
+                retry = False
+                retry_policy = False
             
             if retry and retry_policy:
-                msg = 'Retry task... Failure from Odoo {db} (task: {uuid}, model: {model}, method: {method}).'.format(
+                msg = 'Retry task... Failure in Odoo {db} (task: {uuid}, model: {model}, method: {method}).'.format(
                     db=db, uuid=task_uuid, model=model, method=method)
                 logger.info(msg)
 
@@ -81,7 +85,11 @@ def call_task(self, url, db, user_id, password, task_uuid, model, method, **kwar
                 logger.info('{task_name} retry params: {params}'.format(task_name=self.name, params=params))
                 raise self.retry(**params)
             else:
-                raise self.retry(max_retries=1, countdown=1)
+                # No Celery retry.
+                msg = 'No retry for task failure in Odoo {db} (task: {uuid}, model: {model}, method: {method}).\n'\
+                      '=> Exception: {exception}'.format(
+                          db=db, uuid=task_uuid, model=model, method=method, exception=e)
+                logger.info(msg)
         else:
             return (code, result)
     except Exception as e:
@@ -120,6 +128,6 @@ def call_task(self, url, db, user_id, password, task_uuid, model, method, **kwar
             # Necessary to implement/call a retry() for other exceptions ?
             msg = '{exception}\n'\
                   '=> SUGGESTIONS: Check former XML-RPC log messages. '\
-                  'Check the Celery params in the Odoo configuration.\n'.format(exception=e)
+                  '.\n'.format(exception=e)
             logger.error(msg)
             raise e
