@@ -85,10 +85,8 @@ def call_task(self, url, db, user_id, password, task_uuid, model, method, **kwar
                 logger.info('{task_name} retry params: {params}'.format(task_name=self.name, params=params))
                 raise self.retry(**params)
             else:
-                # No Celery retry.
-                msg = 'No retry for task failure in Odoo {db} (task: {uuid}, model: {model}, method: {method}).\n'\
-                      '=> Exception: {exception}'.format(
-                          db=db, uuid=task_uuid, model=model, method=method, exception=e)
+                msg = 'Exit task... Failure in Odoo {db} (task: {uuid}, model: {model}, method: {method})\n'\
+                      '  => Check task log/info in Odoo'.format(db=db, uuid=task_uuid, model=model, method=method)
                 logger.info(msg)
         else:
             return (code, result)
@@ -127,7 +125,6 @@ def call_task(self, url, db, user_id, password, task_uuid, model, method, **kwar
             #
             # Necessary to implement/call a retry() for other exceptions ?
             msg = '{exception}\n'\
-                  '=> SUGGESTIONS: Check former XML-RPC log messages. '\
-                  '.\n'.format(exception=e)
+                  '  => SUGGESTIONS: Check former XML-RPC log messages.\n'.format(exception=e)
             logger.error(msg)
             raise e
