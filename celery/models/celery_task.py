@@ -216,7 +216,7 @@ class CeleryTask(models.Model):
                 else:
                     res = getattr(model_obj.with_env(env), method)(task_uuid, **kwargs)
 
-                if not bool(res):
+                if res != False and not bool(res):
                     msg = "No result/return value for Task UUID: %s. Ensure the task-method returns a value." % task_uuid
                     logger.error(msg)
                     raise CeleryTaskNoResultError(msg)
