@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!-- Copyright 2018 Nova Code (http://www.novacode.nl)
+License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
+
+<odoo>
+    <data>
+        <record id="celery_example" model="celery.example">
+            <field name="name">Example Task</field>
+        </record>
+    </data>
+</odoo>
