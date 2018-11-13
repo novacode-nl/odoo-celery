@@ -10,7 +10,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	    <field name="arch" type="xml">
                 <tree string="Celery Example" create="false" edit="false" delete="false">
                     <field name="name"/>
-                    <button name="action_schedule_import" type="object" string="Schedule Import"/>
+                    <button name="action_schedule_import" type="object" string="Schedule Log Message"/>
                 </tree>
             </field>
         </record>
