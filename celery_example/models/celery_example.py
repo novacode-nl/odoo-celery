@@ -15,10 +15,10 @@ class CeleryExample(models.Model):
 
     name = fields.Char(default='Celery Example')
 
-    @api.model
-    def schedule_import(self, task_uuid, **kwargs):
-        _logger.info('CELERY called task: model [%s] and method [schedule_import].' % self._name)
-
     @api.multi
-    def action_schedule_import(self):
-        self.env["celery.task"].call_task("celery.example", "schedule_import")
+    def action_schedule_log_message(self):
+        self.env["celery.task"].call_task("celery.example", "schedule_log_message")
+
+    @api.model
+    def schedule_log_message(self, task_uuid, **kwargs):
+        _logger.info('CELERY called task: model [%s] and method [schedule_log_message].' % self._name)
