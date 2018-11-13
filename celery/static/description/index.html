@@ -1,0 +1,84 @@
+<section class="oe_container">
+  <div class="oe_row oe_spaced">
+    <h2 class="oe_slogan" style="color:#875A7B;"><b>Celery - Distributed Task Queue</b></h2>
+    <h3 class="oe_slogan">Put <em>model-methods</em> on the Celery Task Queue</h3>
+    <h3 class="oe_slogan">Monitor and manage the Task Queue in Odoo</h3>
+
+    <div class="oe_row oe_centeralign mb64">
+      <h4>Check out the links below, for more info about the <i>Celery</i></h4>
+      <a href="http://celeryproject.org" target="_blank" class="oe_button oe_big">Celery</a>
+      <a href="http://docs.celeryproject.org/en/latest/getting-started/first-steps-with-celery.html" target="_blank" class="oe_button oe_big oe_tacky">Celery Installation</a>
+    </div>
+  </div>
+</section>
+
+<section class="oe_container">
+  <div class="oe_row oe_spaced">
+    <h2 class="oe_slogan" style="color:#875A7B;">Put a <em>model-method</em> on the Celery Task Queue</h2>
+    <h3 class="oe_slogan">Just Python code to call from an Odoo model</h3>
+    <div class="oe_row_img oe_centered">
+      <strong>Optional Celery parameters:</strong>
+      <pre>celery = {
+  'countdown': 3,
+  'retry': True,
+  'max_retries': 3,
+  'interval_start': 2
+}</pre>
+      <strong>Put a model-method as a task on the queue:</strong>
+      <ul>
+        <li><strong>model</strong>: "celery.example"</li>
+        <li><strong>method</strong>: "schedule_import"</li>
+      </ul>
+      <pre>self.env["celery.task"].call_task("celery.example", "schedule_import", celery=celery)</pre>
+    </div>
+</section>
+
+<section class="oe_container">
+  <div class="oe_row oe_spaced">
+    <h2 class="oe_slogan" style="color:#875A7B;">Monitor and control the Celery Task Queue</h2>
+    <div class="oe_row_img oe_centered">
+      <h4 class="oe_mb16 text-center">List of queued tasks</h4>
+      <img class="oe_demo oe_picture oe_screenshot" src="odoo-task-queue-failure.png">
+    </div>
+    <div class="oe_row_img oe_centered">
+      <h4 class="oe_mb16 text-center">Task Failure info</h4>
+      <img class="oe_demo oe_picture oe_screenshot" src="odoo-task-failure.png">
+    </div>
+    <div class="oe_row_img oe_centered">
+      <h4 class="oe_mb16 text-center">Tasks waiting for Retry</h4>
+      <img class="oe_demo oe_picture oe_screenshot" src="odoo-task-queue-retry.png">
+    </div>
+    <div class="oe_row_img oe_centered">
+      <h4 class="oe_mb16 text-center">Task waiting for Retry with Failure info</h4>
+      <img class="oe_demo oe_picture oe_screenshot" src="odoo-task-retry.png">
+    </div>
+    <div class="oe_row_img oe_centered">
+      <h4 class="oe_mb16 text-center">Requeue a Failed Task</h4>
+      <img class="oe_demo oe_picture oe_screenshot" src="odoo-requeue-single-task.png">
+    </div>
+    <div class="oe_row_img oe_centered">
+      <h4 class="oe_mb16 text-center">Requeue multiple Failed Tasks</h4>
+      <img class="oe_demo oe_picture oe_screenshot" src="odoo-requeue-multiple-tasks.png">
+    </div>
+  </div>
+</section>
+
+<section class="oe_container">
+  <div class="oe_row oe_spaced">
+    <h2 class="oe_slogan" style="color:#875A7B;">Installation and configuration</h2>
+    <div class="oe_row_img oe_centered">
+      <h4 class="oe_mb16 text-center">Celery and Message broker</h4>
+      <div class="oe_row oe_centeralign mb64">
+        <a href="http://docs.celeryproject.org/en/latest/getting-started/first-steps-with-celery.html" target="_blank" class="oe_button oe_big oe_tacky">Celery Installation</a>
+      </div>
+    </div>
+    <div class="oe_row_img oe_centered">
+      <h4 class="oe_mb16 text-center">Odoo configuration</h4>
+      <p>
+        All you need is a few [celery] settings in the Odoo configuration file.
+        See: <a href="https://github.com/novacode-nl/odoo-celery/blob/11.0/celery/example.odoo.conf">example.odoo.conf</a>
+      </p>
+      <p>This enables the Celery process to authenticate in Odoo, by the XML-RPC server.</p>
+    </div>
+  </div>
+</section>
