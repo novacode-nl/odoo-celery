@@ -21,4 +21,6 @@ class CeleryExample(models.Model):
 
     @api.model
     def schedule_log_message(self, task_uuid, **kwargs):
-        _logger.info('CELERY called task: model [%s] and method [schedule_log_message].' % self._name)
+        msg = 'CELERY called task: model [%s] and method [schedule_log_message].' % self._name
+        _logger.info(msg)
+        return msg
