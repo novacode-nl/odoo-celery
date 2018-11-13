@@ -16,6 +16,14 @@
         </li>
         <li>
           <i class="fa fa-check-square-o text-primary"></i>
+          All Exceptions are catched and avaiable as State=Failure with Exception message/trace shown.
+        </li>
+        <li>
+          <i class="fa fa-check-square-o text-primary"></i>
+          Requeue of Failed and Pending (stale) tasks.
+        </li>
+        <li>
+          <i class="fa fa-check-square-o text-primary"></i>
           No complex installation and setup requirements are needed, except usual the Celery setup.
         </li>
       </ul>
@@ -102,6 +110,13 @@
         See: <a href="https://github.com/novacode-nl/odoo-celery/blob/11.0/celery/example.odoo.conf">example.odoo.conf</a>
       </p>
       <p>This enables the Celery process to authenticate in Odoo, by the XML-RPC server.</p>
+    </div>
+    <div class="oe_row_img oe_centered">
+      <h4 class="oe_mb16 text-center">Start the Celery (Odoo) worker server</h4>
+      <p>Check the Celery Documentation for more ways to start and manage the server/process.</p>
+      <p>The Celery (Odoo) worker => Python file <strong>odoo.py</strong>, which is located directly under the "celery" module directory.</p>
+      <p><strong>Start on command line, whereas "odoo" references to the Python file:</strong></p>
+      <pre># celery -A odoo worker --loglevel=info</pre>
     </div>
   </div>
 </section>
