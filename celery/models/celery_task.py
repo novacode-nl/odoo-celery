@@ -159,8 +159,10 @@ class CeleryTask(models.Model):
             # Call Celery Task.
             call_task.apply_async(args=_args, kwargs=kwargs, **kwargs['celery'])
         else:
-            # Call Celery Task.
-            call_task.apply_async(args=_args, kwargs=kwargs)
+            params = {}
+            if celery and celery.get('countdown'):
+                params['countdown'] = celery.get('countdown')
+            call_task.apply_async(args=_args, kwargs=kwargs, **params)
 
     @api.model
     def rpc_run_task(self, task_uuid, model, method, *args, **kwargs):
