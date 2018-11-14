@@ -34,13 +34,6 @@
       <a href="http://celeryproject.org" target="_blank" class="oe_button oe_big">Celery</a>
       <a href="http://docs.celeryproject.org/en/latest/getting-started/first-steps-with-celery.html" target="_blank" class="oe_button oe_big oe_tacky">Celery Installation</a>
     </div>
-
-    <div class="oe_row oe_centeralign mb16">
-      <h4>Check out the "Celery Example" module</h4>
-      <p>After installation, go to the menu "Celery / Example Task". Click the button "Schedule Log Message", which puts a task on the queue.</p>
-      <a href="https://apps.odoo.com/apps/modules/11.0/celery_example/" target="_blank" class="oe_button oe_big">Celery Example module</a>
-    </div>
-  </div>
 </section>
 
 <section class="oe_container">
@@ -100,7 +93,7 @@
     <div class="oe_row_img oe_centered">
       <h4 class="oe_mb16 text-center">Celery and Message broker</h4>
       <div class="oe_row oe_centeralign mb64">
-        <a href="http://docs.celeryproject.org/en/latest/getting-started/first-steps-with-celery.html" target="_blank" class="oe_button oe_big oe_tacky">Celery Installation</a>
+        <a href="http://docs.celeryproject.org/en/latest/getting-started/first-steps-with-celery.html" target="_blank" class="oe_button oe_big">Celery Installation</a>
       </div>
     </div>
     <div class="oe_row_img oe_centered">
@@ -117,6 +110,24 @@
       <p>The Celery (Odoo) worker => Python file <strong>odoo.py</strong>, which is located directly under the "celery" module directory.</p>
       <p><strong>Start on command line, whereas "odoo" references to the Python file:</strong></p>
       <pre># celery -A odoo worker --loglevel=info</pre>
+    </div>
+  </div>
+</section>
+
+<section class="oe_container oe_dark">
+  <div class="oe_row oe_spaced">
+    <h2 class="oe_slogan" style="color:#875A7B;">"Celery Example" module</h2>
+    <h3 class="oe_slogan">Demo of 2 implemented example tasks, queued by 2 buttons</h3>
+    <div class="oe_row oe_centeralign mb16">
+      <h4>Check out the "Celery Example" module</h4>
+      <ul>
+        <li>After installation, go to the menu "Celery / Example Task".</li>
+        <li>Click button(s) "Queue create Line" shown in screensshot, which puts a task on the queue.</li>
+        <li>Check the queue (menu: Celery / Tasks). Check the form of the Example record - new Lines had been created.</li>
+      </ul>
+      <a href="https://apps.odoo.com/apps/modules/11.0/celery_example/" target="_blank" class="oe_button oe_big">Celery Example module</a>
+      <img class="oe_demo oe_picture oe_screenshot" src="odoo-example-task-list.png">
+      <img class="oe_demo oe_picture oe_screenshot" src="odoo-example-task-form.png">
     </div>
   </div>
 </section>
