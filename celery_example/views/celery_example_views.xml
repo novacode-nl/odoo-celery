@@ -8,9 +8,11 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	    <field name="name">celery.example.tree</field>
 	    <field name="model">celery.example</field>
 	    <field name="arch" type="xml">
-                <tree string="Celery Example" create="false" edit="false" delete="false">
+                <tree string="Celery Example">
                     <field name="name"/>
-                    <button name="action_schedule_log_message" type="object" string="Schedule Log Message"/>
+                    <field name="lines"/>                    
+                    <button name="action_queue_example_line" type="object" string="Queue create Line"/>
+                    <button name="action_queue_countdown_example_line" type="object" string="Queue create Line with countdown (10 sec)"/>
                 </tree>
             </field>
         </record>
@@ -20,12 +22,25 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	    <field name="model">celery.example</field>
 	    <field name="type">form</field>
 	    <field name="arch" type="xml">
-                <form create="false" edit="false" delete="false">
+                <form>
                     <sheet>
+                        <button name="refresh_view" class="pull-right" type="object" icon="fa-retweet">Refresh view</button>
                         <div class="oe_title">
                             <h1><field name="name" nolabel="1"/></h1>
                         </div>
-                        <button name="action_schedule_log_message" type="object" string="Schedule Log Message"/>
+                        <button name="action_queue_example_line" type="object" string="Queue create Line"/>
+                        <button name="action_queue_countdown_example_line" type="object" string="Queue create Line with countdown (10 sec)"/>
+                        <notebook>
+                            <page name="lines" string="Lines">
+                                <field name="lines">
+                                    <tree>
+                                        <field name="name"/>
+                                        <field name="example_id"/>
+                                        <field name="create_date"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
                     </sheet>
                 </form>
             </field>
