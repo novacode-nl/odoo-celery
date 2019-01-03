@@ -84,33 +84,33 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	    </field>
         </record>
 
-	<record id="view_celery_task_search" model="ir.ui.view">
-	    <field name="name">celery.task.search</field>
-	    <field name="model">celery.task</field>
-	    <field name="type">search</field>
-	    <field name="arch" type="xml">
-		<search string="Celery Tasks">
-		    <field name="uuid"/>
-                    <field name="model"/>
-                    <field name="method"/>
-                    <filter name="pending" string="Pending"
-                            domain="[('state', '=', 'PENDING')]"/>
-                    <filter name="started" string="Started"
-                            domain="[('state', '=', 'STARTED')]"/>
-                    <filter name="retry" string="Retry"
-                            domain="[('state', '=', 'RETRY')]"/>
-                    <filter name="failure" string="Failure"
-                            domain="[('state', '=', 'FAILURE')]"/>
-                    <filter name="success" string="Success"
-                            domain="[('state', '=', 'SUCCESS')]"/>
-		    <group expand="0" string="Group By">
-	                <filter string="Model" domain="[]" context="{'group_by': 'model'}"/>
-	                <filter string="Task/method" domain="[]" context="{'group_by': 'method'}"/>
-                        <filter string="State" domain="[]" context="{'group_by': 'state'}"/>
-                    </group>
-                </search>
-	    </field>
-        </record>
+	<!-- <record id="view_celery_task_search" model="ir.ui.view"> -->
+	<!--     <field name="name">celery.task.search</field> -->
+	<!--     <field name="model">celery.task</field> -->
+	<!--     <field name="type">search</field> -->
+	<!--     <field name="arch" type="xml"> -->
+	<!-- 	<search string="Celery Tasks"> -->
+	<!-- 	    <field name="uuid"/> -->
+        <!--             <field name="model"/> -->
+        <!--             <field name="method"/> -->
+        <!--             <filter name="pending" string="Pending" -->
+        <!--                     domain="[('state', '=', 'PENDING')]"/> -->
+        <!--             <filter name="started" string="Started" -->
+        <!--                     domain="[('state', '=', 'STARTED')]"/> -->
+        <!--             <filter name="retry" string="Retry" -->
+        <!--                     domain="[('state', '=', 'RETRY')]"/> -->
+        <!--             <filter name="failure" string="Failure" -->
+        <!--                     domain="[('state', '=', 'FAILURE')]"/> -->
+        <!--             <filter name="success" string="Success" -->
+        <!--                     domain="[('state', '=', 'SUCCESS')]"/> -->
+	<!-- 	    <group expand="0" string="Group By"> -->
+	<!--                 <filter string="Model" domain="[]" context="{'group_by': 'model'}"/> -->
+	<!--                 <filter string="Task/method" domain="[]" context="{'group_by': 'method'}"/> -->
+        <!--                 <filter string="State" domain="[]" context="{'group_by': 'state'}"/> -->
+        <!--             </group> -->
+        <!--         </search> -->
+	<!--     </field> -->
+        <!-- </record> -->
 
         <record id="view_requeue_celery_task" model="ir.ui.view">
             <field name="name">Requeue Task</field>

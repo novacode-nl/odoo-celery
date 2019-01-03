@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2018 Nova Code (http://www.novacode.nl)
+See LICENSE file for full copyright and licensing details. -->
+
+<odoo>
+    <data noupdate="1">
+        <record id="access_celery_example_celery_manager" model="ir.model.access">
+            <field name="name">celery.example: Celery Manager</field>
+            <field name="model_id" ref="celery_example.model_celery_example"/>
+            <field name="group_id" ref="celery.group_celery_manager"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+        </record>
+
+        <record id="access_celery_example_celery_rpc" model="ir.model.access">
+            <field name="name">celery.example: Celery RPC</field>
+            <field name="model_id" ref="celery_example.model_celery_example"/>
+            <field name="group_id" ref="celery.group_celery_rpc"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_unlink" eval="0"/>
+        </record>
+
+        <record id="access_celery_example_line_celery_manager" model="ir.model.access">
+            <field name="name">celery.example.line: Celery Manager</field>
+            <field name="model_id" ref="celery_example.model_celery_example_line"/>
+            <field name="group_id" ref="celery.group_celery_manager"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+        </record>
+
+        <record id="access_celery_example_line_celery_rpc" model="ir.model.access">
+            <field name="name">celery.example.line: Celery RPC</field>
+            <field name="model_id" ref="celery_example.model_celery_example_line"/>
+            <field name="group_id" ref="celery.group_celery_rpc"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_unlink" eval="0"/>
+        </record>
+    </data>
+</odoo>

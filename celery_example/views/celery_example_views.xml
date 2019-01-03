@@ -58,6 +58,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             id="menu_celery_example"
             name="Example Task"
             parent="celery.menu_celery_root"
+            sequence="90"
             action="action_celery_example"/>
      </data>
 </odoo>

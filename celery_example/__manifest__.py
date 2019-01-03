@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2018 Nova Code (http://www.novacode.nl)
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 {
@@ -13,6 +12,7 @@
     'depends': ['celery'],
     'data': [
         'data/celery_example_data.xml',
+        'security/ir_model_access.xml',
         'views/celery_example_views.xml'
     ],
     'images': [
