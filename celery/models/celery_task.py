@@ -138,6 +138,10 @@ class CeleryTask(models.Model):
         if not kwargs.get('_password'):
             kwargs['_password'] = password
 
+        _kwargsrepr = copy.deepcopy(kwargs)
+        _kwargsrepr['_password'] = '*****'
+        _kwargsrepr = repr(_kwargsrepr)
+        
         celery = kwargs.get('celery')
         
         # Copy kwargs to update with more (Celery) info.
@@ -160,15 +164,12 @@ class CeleryTask(models.Model):
             if celery.get('countdown'):
                 kwargs['celery']['countdown'] = celery.get('countdown')
             # Call Celery Task.
-            call_task.apply_async(args=_args, kwargs=kwargs, **kwargs['celery'])
+            call_task.apply_async(args=_args, kwargs=kwargs, kwargsrepr=_kwargsrepr, **kwargs['celery'])
         else:
             params = {}
             if celery and celery.get('countdown'):
                 params['countdown'] = celery.get('countdown')
-
-            _kwargs = copy.copy(kwargs)
-            _kwargs['_password'] = '*****'
-            call_task.apply_async(args=_args, kwargs=kwargs, kwargsrepr=repr(_kwargs), **params)
+            call_task.apply_async(args=_args, kwargs=kwargs, kwargsrepr=_kwargsrepr, **params)
 
     @api.model
     def rpc_run_task(self, task_uuid, model, method, *args, **kwargs):
