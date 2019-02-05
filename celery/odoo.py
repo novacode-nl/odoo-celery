@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 Nova Code (http://www.novacode.nl)
+# Copyright Nova Code (http://www.novacode.nl)
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
+
+import copy
 
 from celery import Celery
 from celery.contrib import rdb
@@ -28,15 +30,18 @@ class RunTaskFailure(TaskError):
 app = Celery('odoo.addons.celery')
 
 @app.task(name='odoo.addons.celery.odoo.call_task', bind=True)
-def call_task(self, url, db, user_id, password, task_uuid, model, method, **kwargs):
+def call_task(self, url, db, user_id, task_uuid, model, method, **kwargs):
     odoo = xmlrpc_client.ServerProxy('{}/xmlrpc/2/object'.format(url))
     args = [task_uuid, model, method]
-    _celery_params = kwargs.get('celery')
+    _kwargs = copy.deepcopy(kwargs)
+    password = _kwargs.get('_password')
+    del _kwargs['_password']
+    _celery_params = _kwargs.get('celery')
 
     logger.info('{model} {method} - celery.task uuid: {uuid}'.format(
         model=model, method=method, uuid=task_uuid))
     logger.info('{model} {method} - kwargs: {kwargs}'.format(
-        model=model, method=method, kwargs=kwargs))
+        model=model, method=method, kwargs=_kwargs))
 
     try:
         logger.info(
@@ -49,8 +54,8 @@ def call_task(self, url, db, user_id, password, task_uuid, model, method, **kwar
             '- method: rpc_run_task\n'
             '- args: {args}\n'
             '- kwargs {kwargs}\n'.format(
-                url=url, db=db, user_id=user_id, task_uuid=task_uuid, model=model, method=method, args=args, kwargs=kwargs))
-        response = odoo.execute_kw(db, user_id, password, 'celery.task', 'rpc_run_task', args, kwargs)
+                url=url, db=db, user_id=user_id, task_uuid=task_uuid, model=model, method=method, args=args, kwargs=_kwargs))
+        response = odoo.execute_kw(db, user_id, password, 'celery.task', 'rpc_run_task', args, _kwargs)
 
         if (isinstance(response, tuple) or isinstance(response, list)) and len(response) == 2:
             code = response[0]

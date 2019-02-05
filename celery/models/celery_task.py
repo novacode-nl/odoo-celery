@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 Nova Code (http://www.novacode.nl)
+# Copyright Nova Code (http://www.novacode.nl)
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
 import copy
@@ -133,7 +133,10 @@ class CeleryTask(models.Model):
     def _celery_call_task(self, user_id, uuid, model, method, kwargs):
         user, password, sudo = _get_celery_user_config()
         url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        _args = [url, self._cr.dbname, user_id, password, uuid, model, method]
+        _args = [url, self._cr.dbname, user_id, uuid, model, method]
+
+        if not kwargs.get('_password'):
+            kwargs['_password'] = password
 
         celery = kwargs.get('celery')
         
@@ -162,7 +165,10 @@ class CeleryTask(models.Model):
             params = {}
             if celery and celery.get('countdown'):
                 params['countdown'] = celery.get('countdown')
-            call_task.apply_async(args=_args, kwargs=kwargs, **params)
+
+            _kwargs = copy.copy(kwargs)
+            _kwargs['_password'] = '*****'
+            call_task.apply_async(args=_args, kwargs=kwargs, kwargsrepr=repr(_kwargs), **params)
 
     @api.model
     def rpc_run_task(self, task_uuid, model, method, *args, **kwargs):
