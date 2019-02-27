@@ -51,7 +51,7 @@ class CeleryTask(models.Model):
     company_id = fields.Many2one('res.company', string='Company', index=True, readonly=True)
     model = fields.Char(string='Model', readonly=True)
     method = fields.Char(string='Method', readonly=True)
-    kwargs = fields.Text(readonly=True)
+    kwargs = fields.Serialized(readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
     state_date = fields.Datetime(string='State Time', readonly=True)
     result = fields.Text(string='Result', readonly=True)
