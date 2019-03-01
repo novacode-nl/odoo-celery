@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright Nova Code (http://www.novacode.nl)
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
@@ -14,6 +13,7 @@ from odoo.exceptions import UserError
 from odoo.tools import config
 
 from ..odoo import call_task
+from ..fields import TaskSerialized
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class CeleryTask(models.Model):
     company_id = fields.Many2one('res.company', string='Company', index=True, readonly=True)
     model = fields.Char(string='Model', readonly=True)
     method = fields.Char(string='Method', readonly=True)
-    kwargs = fields.Serialized(readonly=True)
+    kwargs = TaskSerialized(readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
     state_date = fields.Datetime(string='State Time', readonly=True)
     result = fields.Text(string='Result', readonly=True)
