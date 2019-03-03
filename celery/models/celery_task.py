@@ -2,6 +2,7 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
 import copy
+import json
 import logging
 import os
 import traceback
@@ -295,7 +296,8 @@ class CeleryTask(models.Model):
         for task in self:
             task.set_state_pending()
             try:
-                self._celery_call_task(task.user_id.id, task.uuid, task.model, task.method, task.kwargs)
+                _kwargs = json.loads(task.kwargs)
+                self._celery_call_task(task.user_id.id, task.uuid, task.model, task.method, _kwargs)
             except CeleryCallTaskException as e:
                 logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
         return True
