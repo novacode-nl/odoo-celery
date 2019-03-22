@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 Nova Code (http://www.novacode.nl)
+# Copyright Nova Code (http://www.novacode.nl)
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 {
     'name': 'Celery',
     'summary': 'Celery (Distributed Task Queue)',
     'category': 'Extra Tools',
-    'version': '0.3',
+    'version': '0.4',
     'description': """Execute Odoo task by Celery worker.""",
     'author': 'Nova Code',
     'website': 'https://www.novacode.nl',
