@@ -204,11 +204,16 @@ class CeleryTask(models.Model):
         celery_retry = kwargs.get('celery_retry')
         if celery_retry and task.retry and task.state == STATE_RETRY:
             return (STATE_RETRY, 'Task is already executing a retry.')
-        elif celery_retry and task.celery_retry:
+        elif celery_retry and task.retry:
             task.state = STATE_RETRY
             vals = {'state': STATE_RETRY, 'state_date': fields.Datetime.now()}
         else:
             vals = {'state': STATE_STARTED, 'started_date': fields.Datetime.now()}
+
+        # Store state before execution.
+        with registry(self._cr.dbname).cursor() as result_cr:
+            env = api.Environment(result_cr, self._uid, {})
+            task.with_env(env).write(vals)
 
         user, password, sudo = _get_celery_user_config()
 
