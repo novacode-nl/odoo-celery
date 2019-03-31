@@ -3,6 +3,7 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
 import logging
+import time
 
 from odoo import api, fields, models, _
 
@@ -17,34 +18,61 @@ class CeleryExample(models.Model):
     lines = fields.One2many('celery.example.line', 'example_id', string='Lines')
 
     @api.multi
-    def action_queue_example_line(self):
-        self.env["celery.task"].call_task("celery.example", "queue_example_line", example_id=self.id)
+    def action_task_queue_default(self):
+        celery = {
+            'countdown': 3,
+            'retry': True,
+            'max_retries': 2,
+            'interval_start': 2
+        }
+        self.env["celery.task"].call_task("celery.example", "task_queue_default", example_id=self.id, celery=celery)
 
     @api.multi
-    def action_queue_countdown_example_line(self):
-        # Several Celery params can be set by the celery kwarg.
-        celery = {'countdown': 10}
-        self.env["celery.task"].call_task("celery.example", "queue_countdown_example_line", example_id=self.id, celery=celery)
+    def action_task_queue_high(self):
+        celery = {'queue': 'high', 'countdown': 2}
+        self.env["celery.task"].call_task("celery.example", "task_queue_high", example_id=self.id, celery=celery)
+
+    @api.multi
+    def action_task_queue_low(self):
+        celery = {'queue': 'low', 'countdown': 10}
+        self.env["celery.task"].call_task("celery.example", "task_queue_low", example_id=self.id, celery=celery)
 
     @api.model
-    def queue_example_line(self, task_uuid, **kwargs):
+    def task_queue_default(self, task_uuid, **kwargs):
+        task = 'task_queue_default'
         example_id = kwargs.get('example_id')
         self.env['celery.example.line'].create({
-            'name': 'Created by queued task',
+            'name': task,
             'example_id': example_id
         })
-        msg = 'CELERY called task: model [%s] and method [queue_example_line].' % self._name
+        msg = 'CELERY called task: model [%s] and method [%s].' % (self._name, task)
         _logger.info(msg)
         return msg
 
     @api.model
-    def queue_countdown_example_line(self, task_uuid, **kwargs):
+    def task_queue_high(self, task_uuid, **kwargs):
+        time.sleep(10)
+        task = 'task_queue_high'
         example_id = kwargs.get('example_id')
         self.env['celery.example.line'].create({
-            'name': 'Created by queued task with countdown (10 sec)',
+            'name': task,
             'example_id': example_id
         })
-        msg = 'CELERY called task: model [%s] and method [queue_countdown_example_line].' % self._name
+        msg = 'CELERY called task: model [%s] and method [%s].' % (self._name, task)
+        _logger.info(msg)
+        return msg
+
+    @api.model
+    def task_queue_low(self, task_uuid, **kwargs):
+        time.sleep(5)
+
+        task = 'task_queue_low'
+        example_id = kwargs.get('example_id')
+        self.env['celery.example.line'].create({
+            'name': task,
+            'example_id': example_id
+        })
+        msg = 'CELERY called task: model [%s] and method [%s].' % (self._name, task)
         _logger.info(msg)
         return msg
 

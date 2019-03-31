@@ -13,7 +13,7 @@ from odoo.addons.base_sparse_field.models.fields import Serialized
 from odoo.exceptions import UserError
 from odoo.tools import config
 
-from ..odoo import call_task
+from ..odoo import call_task, TASK_DEFAULT_QUEUE
 from ..fields import TaskSerialized
 
 logger = logging.getLogger(__name__)
@@ -48,6 +48,7 @@ class CeleryTask(models.Model):
     _order = 'create_date DESC'
 
     uuid = fields.Char(string='UUID', readonly=True, index=True, required=True)
+    queue = fields.Char(string='Queue', readonly=True, required=True, default=TASK_DEFAULT_QUEUE)
     user_id = fields.Many2one('res.users', string='User ID', required=True, readonly=True)
     company_id = fields.Many2one('res.company', string='Company', index=True, readonly=True)
     model = fields.Char(string='Model', readonly=True)
