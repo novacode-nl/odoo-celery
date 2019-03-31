@@ -11,8 +11,9 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                 <tree string="Celery Example">
                     <field name="name"/>
                     <field name="lines"/>                    
-                    <button name="action_queue_example_line" type="object" string="Queue create Line"/>
-                    <button name="action_queue_countdown_example_line" type="object" string="Queue create Line with countdown (10 sec)"/>
+                    <button name="action_task_queue_default" type="object" string="Task queue=default"/>
+                    <button name="action_task_queue_high" type="object" string="Task queue=high"/>
+                    <button name="action_task_queue_low" type="object" string="Task queue=low"/>
                 </tree>
             </field>
         </record>
@@ -28,8 +29,9 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                         <div class="oe_title">
                             <h1><field name="name" nolabel="1"/></h1>
                         </div>
-                        <button name="action_queue_example_line" type="object" string="Queue create Line"/>
-                        <button name="action_queue_countdown_example_line" type="object" string="Queue create Line with countdown (10 sec)"/>
+                        <button name="action_task_queue_default" type="object" string="Task default"/>
+                        <button name="action_task_queue_high" type="object" string="Task queue=high"/>
+                        <button name="action_task_queue_low" type="object" string="Task queue=low"/>
                         <notebook>
                             <page name="lines" string="Lines">
                                 <field name="lines">
@@ -59,5 +61,5 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             name="Example Task"
             parent="celery.menu_celery_root"
             action="action_celery_example"/>
-     </data>
+    </data>
 </odoo>
