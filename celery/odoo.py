@@ -11,6 +11,8 @@ from xmlrpc import client as xmlrpc_client
 
 logger = get_task_logger(__name__)
 
+TASK_DEFAULT_QUEUE = 'celery'
+
 OK_CODE = 'OK'
 
 # STATES (checks) should match with [celery.task] model!

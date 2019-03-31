@@ -14,6 +14,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 		    <field name="uuid"/>
                     <field name="model"/>
                     <field name="method"/>
+                    <field name="queue"/>
                     <field name="create_date" readonly="1"/>
                     <field name="started_date"/>
                     <field name="state_date"/>
@@ -45,6 +46,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                 <field name="method"/>
                             </group>
                             <group>
+                                <field name="queue"/>
                                 <field name="create_date"/>
                                 <field name="started_date"/>
                                 <field name="state_date"/>
@@ -94,6 +96,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 		    <field name="uuid"/>
                     <field name="model"/>
                     <field name="method"/>
+                    <field name="queue"/>
                     <filter name="pending" string="Pending"
                             domain="[('state', '=', 'PENDING')]"/>
                     <filter name="started" string="Started"
@@ -108,6 +111,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	                <filter string="Model" domain="[]" context="{'group_by': 'model'}"/>
 	                <filter string="Task/method" domain="[]" context="{'group_by': 'method'}"/>
                         <filter string="State" domain="[]" context="{'group_by': 'state'}"/>
+                        <filter string="Queue" domain="[]" context="{'group_by': 'queue'}"/>
                     </group>
                 </search>
 	    </field>

@@ -46,7 +46,8 @@
         'countdown': 3,
         'retry': True,
         'max_retries': 3,
-        'interval_start': 2
+        'interval_start': 2,
+        'queue': 'high.priority'
         }</pre>
       <strong>Put a model-method as a task on the queue:</strong>
       <ul>
@@ -135,6 +136,10 @@
 <section class="oe_container">
   <div class="oe_row oe_spaced">
     <h2 class="oe_slogan" style="color:#875A7B;">Changelog</h2>
+    <h4 class="oe_mb16">0.5</h4>
+    <ul>
+      <li>Routing tasks to specific (named) queues.</li>
+    </ul>
     <h4 class="oe_mb16">0.4</h4>
     <ul>
       <li>FIX: Store task state (Started, Retry) before execution.</li>
