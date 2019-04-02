@@ -165,12 +165,16 @@ class CeleryTask(models.Model):
             # For now used in the retry countdown (not initial call).
             if celery.get('countdown'):
                 kwargs['celery']['countdown'] = celery.get('countdown')
+            if celery.get('queue'):
+                kwargs['celery']['queue'] = celery.get('queue')
             # Call Celery Task.
             call_task.apply_async(args=_args, kwargs=kwargs, kwargsrepr=_kwargsrepr, **kwargs['celery'])
         else:
             params = {}
             if celery and celery.get('countdown'):
                 params['countdown'] = celery.get('countdown')
+            if celery and celery.get('queue'):
+                params['queue'] = celery.get('queue')
             call_task.apply_async(args=_args, kwargs=kwargs, kwargsrepr=_kwargsrepr, **params)
 
     @api.model

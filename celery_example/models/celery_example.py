@@ -29,7 +29,9 @@ class CeleryExample(models.Model):
 
     @api.multi
     def action_task_queue_high(self):
-        celery = {'queue': 'high', 'countdown': 2}
+        celery = {'queue': 'high', 'countdown': 2,
+                  'retry': True, 'max_retries': 2, 'interval_start': 5
+        }
         self.env["celery.task"].call_task("celery.example", "task_queue_high", example_id=self.id, celery=celery)
 
     @api.multi
