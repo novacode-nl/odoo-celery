@@ -20,23 +20,25 @@ class CeleryExample(models.Model):
     @api.multi
     def action_task_queue_default(self):
         celery = {
-            'countdown': 3,
-            'retry': True,
-            'max_retries': 2,
-            'interval_start': 2
+            'countdown': 3, 'retry': True,
+            'retry_policy': {'max_retries': 2, 'interval_start': 2}
         }
         self.env["celery.task"].call_task("celery.example", "task_queue_default", example_id=self.id, celery=celery)
 
     @api.multi
     def action_task_queue_high(self):
-        celery = {'queue': 'high', 'countdown': 2,
-                  'retry': True, 'max_retries': 2, 'interval_start': 5
+        celery = {
+            'queue': 'high.priority', 'countdown': 2, 'retry': True,
+            'retry_policy': {'max_retries': 2, 'interval_start': 2}
         }
         self.env["celery.task"].call_task("celery.example", "task_queue_high", example_id=self.id, celery=celery)
 
     @api.multi
     def action_task_queue_low(self):
-        celery = {'queue': 'low', 'countdown': 10}
+        celery = {
+            'queue': 'low.priority', 'countdown': 2, 'retry': True,
+            'retry_policy': {'max_retries': 2, 'interval_start': 2}
+        }
         self.env["celery.task"].call_task("celery.example", "task_queue_low", example_id=self.id, celery=celery)
 
     @api.model
@@ -53,7 +55,7 @@ class CeleryExample(models.Model):
 
     @api.model
     def task_queue_high(self, task_uuid, **kwargs):
-        time.sleep(10)
+        time.sleep(2)
         task = 'task_queue_high'
         example_id = kwargs.get('example_id')
         self.env['celery.example.line'].create({
