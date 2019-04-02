@@ -146,6 +146,18 @@ class CeleryTask(models.Model):
         _kwargsrepr = copy.deepcopy(kwargs)
         _kwargsrepr['_password'] = '*****'
         _kwargsrepr = repr(_kwargsrepr)
+
+        # TODO DEPRECATED compatibility to remove after v12
+        celery_kwargs = kwargs.get('celery')
+        if celery_kwargs and celery_kwargs.get('retry') and not celery_kwargs.get('retry_policy'):
+            retry_policy = {}
+            if celery_kwargs.get('max_retries'):
+                retry_policy['max_retries'] = celery_kwargs.get('max_retries')
+            if celery_kwargs.get('interval_start'):
+                retry_policy['interval_start'] = celery_kwargs.get('interval_start')
+            if celery_kwargs.get('interval_step'):
+                retry_policy['interval_step'] = celery_kwargs.get('interval_step')
+            kwargs['celery']['retry_policy'] = retry_policy
         
         call_task.apply_async(args=_args, kwargs=kwargs, kwargsrepr=_kwargsrepr, **kwargs['celery'])
 
