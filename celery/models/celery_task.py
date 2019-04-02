@@ -116,7 +116,10 @@ class CeleryTask(models.Model):
 
         if kwargs.get('celery'):
             # Supported apply_async parameters/options shall be stored in the Task model-record.
-            celery_vals = kwargs.get('celery')
+            celery_vals = copy.copy(kwargs.get('celery'))
+            if celery_vals.get('retry_policy'):
+                vals.update(celery_vals.get('retry_policy'))
+                del celery_vals['retry_policy']
             vals.update(celery_vals)
 
         with registry(self._cr.dbname).cursor() as cr:
@@ -144,34 +147,7 @@ class CeleryTask(models.Model):
         _kwargsrepr['_password'] = '*****'
         _kwargsrepr = repr(_kwargsrepr)
         
-        celery = kwargs.get('celery')
-        
-        # Copy kwargs to update with more (Celery) info.
-        if celery and celery.get('retry'):
-            retry_policy = {}
-            if celery.get('max_retries'):
-                retry_policy['max_retries'] = celery.get('max_retries')
-            if celery.get('interval_start'):
-                retry_policy['interval_start'] = celery.get('interval_start')
-            if celery.get('interval_step'):
-                retry_policy['interval_step'] = celery.get('interval_step')
-
-            # Provide kwargs with the Celery Task Parameters.
-            kwargs['celery'] = {
-                'retry': True,
-                'retry_policy': retry_policy
-            }
-
-            # For now used in the retry countdown (not initial call).
-            if celery.get('countdown'):
-                kwargs['celery']['countdown'] = celery.get('countdown')
-            # Call Celery Task.
-            call_task.apply_async(args=_args, kwargs=kwargs, kwargsrepr=_kwargsrepr, **kwargs['celery'])
-        else:
-            params = {}
-            if celery and celery.get('countdown'):
-                params['countdown'] = celery.get('countdown')
-            call_task.apply_async(args=_args, kwargs=kwargs, kwargsrepr=_kwargsrepr, **params)
+        call_task.apply_async(args=_args, kwargs=kwargs, kwargsrepr=_kwargsrepr, **kwargs['celery'])
 
     @api.model
     def rpc_run_task(self, task_uuid, model, method, *args, **kwargs):
