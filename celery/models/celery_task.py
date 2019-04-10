@@ -25,12 +25,14 @@ STATE_STARTED = 'STARTED'
 STATE_RETRY = 'RETRY'
 STATE_FAILURE = 'FAILURE'
 STATE_SUCCESS = 'SUCCESS'
+STATE_CANCEL = 'CANCEL'
 
 STATES = [(STATE_PENDING, 'Pending'),
           (STATE_STARTED, 'Started'),
           (STATE_RETRY, 'Retry'),
           (STATE_FAILURE, 'Failure'),
-          (STATE_SUCCESS, 'Success')]
+          (STATE_SUCCESS, 'Success'),
+          (STATE_CANCEL, 'Cancel')]
 
 def _get_celery_user_config():
     user = (os.environ.get('ODOO_CELERY_USER') or config.misc.get("celery", {}).get('user'))
@@ -70,7 +72,8 @@ class CeleryTask(models.Model):
         - STARTED: The task has been started.
         - RETRY: The task is to be retried, possibly because of failure.
         - FAILURE: The task raised an exception, or has exceeded the retry limit.
-        - SUCCESS: The task executed successfully.""")
+        - SUCCESS: The task executed successfully.
+        - CANCEL: The task has been aborted and cancelled by user action.""")
     res_model = fields.Char(string='Related Model', readonly=True)
     res_ids = fields.Serialized(string='Related Ids', readonly=True)
 
@@ -297,6 +300,22 @@ class CeleryTask(models.Model):
         return True
 
     @api.multi
+    def cancel(self):
+        user, password, sudo = _get_celery_user_config()
+        user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
+
+        if not user_id:
+            raise UserError('No user found with login: {login}'.format(login=user))
+        user_id = user_id[0]['id']
+
+        for task in self:
+            task.write({
+                'state': STATE_CANCEL,
+                'state_date': fields.Datetime.now()
+            })
+        return True
+
+    @api.multi
     def action_open_related_record(self):
         """ Open a view with the record(s) of the task.  If it's one record,
         it opens a form-view.  If it concerns mutltiple records, it opens
@@ -351,8 +370,38 @@ class RequeueTask(models.TransientModel):
         domain=[('state', 'in', ['PENDING', 'RETRY', 'FAILURE'])])
 
     @api.multi
-    def requeue(self):
+    def action_requeue(self):
         self.task_ids.requeue()
+        return {'type': 'ir.actions.act_window_close'}
+
+
+class CancelTask(models.TransientModel):
+    _name = 'celery.cancel.task'
+    _description = 'Celery Cancel Tasks Wizard'
+
+    """ Only PENDING or STARTED tasks can be cancelled. Other states
+    are meaningfull already. """
+
+    @api.model
+    def _default_task_ids(self):
+        res = False
+        context = self.env.context
+        if (context.get('active_model') == 'celery.task' and
+                context.get('active_ids')):
+            task_ids = context['active_ids']
+            res = self.env['celery.task'].search([
+                ('id', 'in', context['active_ids']),
+                # TODO add RESTARTED later
+                ('state', 'in', ['PENDING', 'STARTED'])]).ids
+        return res
+
+    task_ids = fields.Many2many(
+        'celery.task', string='Tasks', default=_default_task_ids,
+        domain=[('state', 'in', ['PENDING', 'STARTED'])])
+
+    @api.multi
+    def action_cancel(self):
+        self.task_ids.cancel()
         return {'type': 'ir.actions.act_window_close'}
 
 
