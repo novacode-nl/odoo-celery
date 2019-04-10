@@ -15,6 +15,7 @@
     },
     'data': [
         'data/celery_data.xml',
+        'data/ir_cron_data.xml',
         'security/celery_security.xml',
         'security/ir_model_access.xml',
         'wizard/celery_task_handle_jammed_views.xml',

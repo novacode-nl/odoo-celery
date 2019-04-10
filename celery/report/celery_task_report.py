@@ -23,7 +23,7 @@ class CeleryTaskReport(models.Model):
     state = fields.Selection(STATES, readonly=True)
     started_age_hours = fields.Float(string='Started Age Hours', readonly=True)
     state_age_hours = fields.Float(string='State Age Hours', readonly=True)
-    jammed = fields.Boolean(string='Jammed', readonly=True)
+    jammed = fields.Boolean(string='Seems Jammed', readonly=True)
 
     def _query(self):
         query_str = """

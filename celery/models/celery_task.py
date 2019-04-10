@@ -377,17 +377,16 @@ class CeleryTask(models.Model):
         return True
 
     @api.model
-    def cron_jammed_tasks(self):
+    def cron_handle_jammed_tasks(self):
         time_window = self.env['ir.config_parameter'].sudo().get_param('celery.task.jammed.time.window')
         if not time_window or not time_window.isdigit(): 
            return
 
         TaskReport = self.env['celery.task.report']
-        domain = [
-            ('state', 'in', [STATE_STARTED, STATE_RETRY]),
-            ('age_hours', '>', int(time_window.value))
-        ]
+        domain = [('jammed', '=', True)]
         tasks = TaskReport.search(domain)
+        for t in tasks:
+            t.task_id.jammed()
 
 
 class CeleryCallTaskException(Exception):
