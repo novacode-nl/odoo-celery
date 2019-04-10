@@ -101,6 +101,8 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             domain="[('state', '=', 'PENDING')]"/>
                     <filter name="started" string="Started"
                             domain="[('state', '=', 'STARTED')]"/>
+                    <filter name="stalled" string="Stalled"
+                            domain="[('state', '=', 'STALLED')]"/>
                     <filter name="retry" string="Retry"
                             domain="[('state', '=', 'RETRY')]"/>
                     <filter name="failure" string="Failure"
@@ -127,7 +129,6 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     </group>
                     <footer>
                         <button name="action_requeue" string="Requeue" type="object" class="btn btn-primary"/>
-                        or
                         <button string="Close" class="oe_link" special="cancel"/>
                     </footer>
                 </form>

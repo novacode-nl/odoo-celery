@@ -22,6 +22,7 @@ TASK_NOT_FOUND = 'NOT_FOUND'
 
 STATE_PENDING = 'PENDING'
 STATE_STARTED = 'STARTED'
+STATE_STALLED = 'STALLED'
 STATE_RETRY = 'RETRY'
 STATE_FAILURE = 'FAILURE'
 STATE_SUCCESS = 'SUCCESS'
@@ -29,10 +30,14 @@ STATE_CANCEL = 'CANCEL'
 
 STATES = [(STATE_PENDING, 'Pending'),
           (STATE_STARTED, 'Started'),
+          (STATE_STALLED, 'Stalled'),
           (STATE_RETRY, 'Retry'),
           (STATE_FAILURE, 'Failure'),
           (STATE_SUCCESS, 'Success'),
           (STATE_CANCEL, 'Cancel')]
+
+STATES_TO_REQUEUE = ['PENDING', 'STALLED', 'RETRY', 'FAILURE']
+STATES_TO_CANCEL = ['PENDING', 'STARTED', 'STALLED']
 
 def _get_celery_user_config():
     user = (os.environ.get('ODOO_CELERY_USER') or config.misc.get("celery", {}).get('user'))
@@ -70,6 +75,7 @@ class CeleryTask(models.Model):
         help="""\
         - PENDING: The task is waiting for execution.
         - STARTED: The task has been started.
+        - STALLED: The task has been Started, but due to inactivity marked as Stalled.
         - RETRY: The task is to be retried, possibly because of failure.
         - FAILURE: The task raised an exception, or has exceeded the retry limit.
         - SUCCESS: The task executed successfully.
@@ -291,12 +297,13 @@ class CeleryTask(models.Model):
         user_id = user_id[0]['id']
 
         for task in self:
-            task.set_state_pending()
-            try:
-                _kwargs = json.loads(task.kwargs)
-                self._celery_call_task(task.user_id.id, task.uuid, task.model, task.method, _kwargs)
-            except CeleryCallTaskException as e:
-                logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
+            if task.state in STATES_TO_REQUEUE:
+                task.set_state_pending()
+                try:
+                    _kwargs = json.loads(task.kwargs)
+                    self._celery_call_task(task.user_id.id, task.uuid, task.model, task.method, _kwargs)
+                except CeleryCallTaskException as e:
+                    logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
         return True
 
     @api.multi
@@ -309,10 +316,11 @@ class CeleryTask(models.Model):
         user_id = user_id[0]['id']
 
         for task in self:
-            task.write({
-                'state': STATE_CANCEL,
-                'state_date': fields.Datetime.now()
-            })
+            if task.state in STATES_TO_CANCEL:
+                task.write({
+                    'state': STATE_CANCEL,
+                    'state_date': fields.Datetime.now()
+                })
         return True
 
     @api.multi
@@ -362,12 +370,12 @@ class RequeueTask(models.TransientModel):
             task_ids = context['active_ids']
             res = self.env['celery.task'].search([
                 ('id', 'in', context['active_ids']),
-                ('state', 'in', ['PENDING', 'RETRY', 'FAILURE'])]).ids
+                ('state', 'in', STATES_TO_REQUEUE)]).ids
         return res
 
     task_ids = fields.Many2many(
         'celery.task', string='Tasks', default=_default_task_ids,
-        domain=[('state', 'in', ['PENDING', 'RETRY', 'FAILURE'])])
+        domain=[('state', 'in', STATES_TO_REQUEUE)])
 
     @api.multi
     def action_requeue(self):
@@ -391,13 +399,12 @@ class CancelTask(models.TransientModel):
             task_ids = context['active_ids']
             res = self.env['celery.task'].search([
                 ('id', 'in', context['active_ids']),
-                # TODO add RESTARTED later
-                ('state', 'in', ['PENDING', 'STARTED'])]).ids
+                ('state', 'in', STATES_TO_CANCEL)]).ids
         return res
 
     task_ids = fields.Many2many(
         'celery.task', string='Tasks', default=_default_task_ids,
-        domain=[('state', 'in', ['PENDING', 'STARTED'])])
+        domain=[('state', 'in', STATES_TO_CANCEL)])
 
     @api.multi
     def action_cancel(self):
