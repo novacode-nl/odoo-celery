@@ -17,10 +17,17 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
         <menuitem id="menu_celery_task"
                   name="Tasks"
                   parent="menu_celery_task_root"
-                  action="action_celery_task"/>
-        <menuitem id="menu_celery_task_report"
-                  name="Task Analysis"
+                  action="action_celery_task"
+                  sequence="10"/>
+        <menuitem id="menu_celery_task_jammed"
+                  name="Tasks Jammed"
                   parent="menu_celery_task_root"
-                  action="action_celery_task_report"/>
+                  action="action_celery_task_jammed"
+                  sequence="50"/>
+        <menuitem id="menu_celery_task_report"
+                  name="Tasks Analysis Report"
+                  parent="menu_celery_task_root"
+                  action="action_celery_task_report"
+                  sequence="90"/>
      </data>
 </odoo>

@@ -33,7 +33,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 		<search string="Celery Task Report">
                     <field name="task_id"/>
                     <field name="state"/>
-                    <filter name="jammed" string="Jammed Tasks" domain="[('jammed','=',True)]"/>
+                    <filter name="seems_jammed" string="Seems Jammed" domain="[('jammed','=',True)]"/>
 		</search>
 	    </field>
 	</record>
