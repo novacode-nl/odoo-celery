@@ -10,7 +10,8 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	    <field name="type">tree</field>
 	    <field name="arch" type="xml">
 		<tree string="Celery Tasks" create="false"
-                      decoration-muted="state == 'SUCCESS'" decoration-danger="state == 'FAILURE'">
+                      decoration-muted="state in ('SUCCESS', 'CANCEL')" decoration-danger="state == 'FAILURE'"
+                      decoration-bf="state == 'JAMMED'">
 		    <field name="uuid"/>
                     <field name="model"/>
                     <field name="method"/>
@@ -101,6 +102,8 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             domain="[('state', '=', 'PENDING')]"/>
                     <filter name="started" string="Started"
                             domain="[('state', '=', 'STARTED')]"/>
+                    <filter name="jammed" string="Jammed"
+                            domain="[('state', '=', 'JAMMED')]"/>
                     <filter name="retry" string="Retry"
                             domain="[('state', '=', 'RETRY')]"/>
                     <filter name="failure" string="Failure"
@@ -126,9 +129,24 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                         <field name="task_ids" nolabel="1"/>
                     </group>
                     <footer>
-                        <button name="requeue" string="Requeue" type="object" class="oe_highlight"/>
-                        or
-                        <button string="Cancel" class="oe_link" special="cancel"/>
+                        <button name="action_requeue" string="Requeue" type="object" class="btn btn-primary"/>
+                        <button string="Close" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_cancel_celery_task" model="ir.ui.view">
+            <field name="name">Cancel Task</field>
+            <field name="model">celery.requeue.task</field>
+            <field name="arch" type="xml">
+                <form string="Cancel Tasks">
+                    <group string="The selected tasks will be cancelled.">
+                        <field name="task_ids" nolabel="1"/>
+                    </group>
+                    <footer>
+                        <button name="action_cancel" string="Cancel Task(s)" type="object" class="btn btn-primary"/>
+                        <button string="Close" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
             </field>
@@ -148,6 +166,16 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             <field name="view_type">form</field>
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_requeue_celery_task"/>
+            <field name="target">new</field>
+            <field name="binding_model_id" ref="celery.model_celery_task"/>
+        </record>
+
+        <record id="action_cancel_celery_task" model="ir.actions.act_window">
+            <field name="name">Cancel Task</field>
+            <field name="res_model">celery.cancel.task</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_cancel_celery_task"/>
             <field name="target">new</field>
             <field name="binding_model_id" ref="celery.model_celery_task"/>
         </record>

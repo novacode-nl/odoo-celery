@@ -18,5 +18,9 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                   name="Tasks"
                   parent="menu_celery_task_root"
                   action="action_celery_task"/>
+        <menuitem id="menu_celery_task_report"
+                  name="Task Analysis"
+                  parent="menu_celery_task_root"
+                  action="action_celery_task_report"/>
      </data>
 </odoo>

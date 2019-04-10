@@ -22,15 +22,23 @@ TASK_NOT_FOUND = 'NOT_FOUND'
 
 STATE_PENDING = 'PENDING'
 STATE_STARTED = 'STARTED'
+STATE_JAMMED = 'JAMMED'
 STATE_RETRY = 'RETRY'
 STATE_FAILURE = 'FAILURE'
 STATE_SUCCESS = 'SUCCESS'
+STATE_CANCEL = 'CANCEL'
 
 STATES = [(STATE_PENDING, 'Pending'),
           (STATE_STARTED, 'Started'),
+          (STATE_JAMMED, 'Jammed'),
           (STATE_RETRY, 'Retry'),
           (STATE_FAILURE, 'Failure'),
-          (STATE_SUCCESS, 'Success')]
+          (STATE_SUCCESS, 'Success'),
+          (STATE_CANCEL, 'Cancel')]
+
+STATES_TO_CANCEL = [STATE_PENDING, STATE_JAMMED]
+STATES_TO_REQUEUE = [STATE_PENDING, STATE_JAMMED, STATE_RETRY, STATE_FAILURE]
+STATES_TO_JAMMED = [STATE_STARTED, STATE_RETRY]
 
 def _get_celery_user_config():
     user = (os.environ.get('ODOO_CELERY_USER') or config.misc.get("celery", {}).get('user'))
@@ -45,7 +53,7 @@ class CeleryTask(models.Model):
     # TODO Configure "Celery" group to access mail_thread ?
     #_inherit = ['mail.thread']
     _rec_name = 'uuid'
-    _order = 'create_date DESC'
+    _order = 'id DESC'
 
     uuid = fields.Char(string='UUID', readonly=True, index=True, required=True)
     queue = fields.Char(string='Queue', readonly=True, required=True, default=TASK_DEFAULT_QUEUE)
@@ -55,6 +63,7 @@ class CeleryTask(models.Model):
     method = fields.Char(string='Method', readonly=True)
     kwargs = TaskSerialized(readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
+    # TODO REFACTOR compute and store, by @api.depends (replace all ORM writes)
     state_date = fields.Datetime(string='State Time', readonly=True)
     result = fields.Text(string='Result', readonly=True)
     exc_info = fields.Text(string='Exception Info', readonly=True)
@@ -65,12 +74,15 @@ class CeleryTask(models.Model):
         required=True,
         readonly=True,
         index=True,
+        track_visibility='onchange',
         help="""\
         - PENDING: The task is waiting for execution.
         - STARTED: The task has been started.
+        - JAMMED: The task has been Started, but due to inactivity marked as Jammed.
         - RETRY: The task is to be retried, possibly because of failure.
         - FAILURE: The task raised an exception, or has exceeded the retry limit.
-        - SUCCESS: The task executed successfully.""")
+        - SUCCESS: The task executed successfully.
+        - CANCEL: The task has been aborted and cancelled by user action.""")
     res_model = fields.Char(string='Related Model', readonly=True)
     res_ids = fields.Serialized(string='Related Ids', readonly=True)
 
@@ -184,7 +196,7 @@ class CeleryTask(models.Model):
             return (TASK_NOT_FOUND, msg)
 
         model_obj = self.env[model]
-        task = self.search([('uuid', '=', task_uuid), ('state', 'in', [STATE_PENDING, STATE_RETRY, STATE_FAILURE])], limit=1)
+        task = self.search([('uuid', '=', task_uuid), ('state', 'in', [STATE_PENDING, STATE_RETRY])], limit=1)
 
         if not task:
             return ('OK', 'Task already processed')
@@ -288,12 +300,47 @@ class CeleryTask(models.Model):
         user_id = user_id[0]['id']
 
         for task in self:
-            task.set_state_pending()
-            try:
-                _kwargs = json.loads(task.kwargs)
-                self._celery_call_task(task.user_id.id, task.uuid, task.model, task.method, _kwargs)
-            except CeleryCallTaskException as e:
-                logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
+            if task.state in STATES_TO_REQUEUE:
+                task.set_state_pending()
+                try:
+                    _kwargs = json.loads(task.kwargs)
+                    self._celery_call_task(task.user_id.id, task.uuid, task.model, task.method, _kwargs)
+                except CeleryCallTaskException as e:
+                    logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
+        return True
+
+    @api.multi
+    def cancel(self):
+        user, password, sudo = _get_celery_user_config()
+        user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
+
+        if not user_id:
+            raise UserError('No user found with login: {login}'.format(login=user))
+        user_id = user_id[0]['id']
+
+        for task in self:
+            if task.state in STATES_TO_CANCEL:
+                task.write({
+                    'state': STATE_CANCEL,
+                    'state_date': fields.Datetime.now()
+                })
+        return True
+
+    @api.multi
+    def jammed(self):
+        user, password, sudo = _get_celery_user_config()
+        user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
+
+        if not user_id:
+            raise UserError('No user found with login: {login}'.format(login=user))
+        user_id = user_id[0]['id']
+
+        for task in self:
+            if task.state in STATES_TO_JAMMED:
+                task.write({
+                    'state': STATE_JAMMED,
+                    'state_date': fields.Datetime.now()
+                })
         return True
 
     @api.multi
@@ -329,6 +376,18 @@ class CeleryTask(models.Model):
     def refresh_view(self):
         return True
 
+    @api.model
+    def cron_jammed_tasks(self):
+        time_window = self.env['ir.config_parameter'].sudo().get_param('celery.task.jammed.time.window')
+        if not time_window or not time_window.isdigit(): 
+           return
+
+        TaskReport = self.env['celery.task.report']
+        domain = [
+            ('state', 'in', [STATE_STARTED, STATE_RETRY]),
+            ('age_hours', '>', int(time_window.value))
+        ]
+        tasks = TaskReport.search(domain)
 
 class RequeueTask(models.TransientModel):
     _name = 'celery.requeue.task'
@@ -343,16 +402,45 @@ class RequeueTask(models.TransientModel):
             task_ids = context['active_ids']
             res = self.env['celery.task'].search([
                 ('id', 'in', context['active_ids']),
-                ('state', 'in', ['PENDING', 'RETRY', 'FAILURE'])]).ids
+                ('state', 'in', STATES_TO_REQUEUE)]).ids
         return res
 
     task_ids = fields.Many2many(
         'celery.task', string='Tasks', default=_default_task_ids,
-        domain=[('state', 'in', ['PENDING', 'RETRY', 'FAILURE'])])
+        domain=[('state', 'in', STATES_TO_REQUEUE)])
 
     @api.multi
-    def requeue(self):
+    def action_requeue(self):
         self.task_ids.requeue()
+        return {'type': 'ir.actions.act_window_close'}
+
+
+class CancelTask(models.TransientModel):
+    _name = 'celery.cancel.task'
+    _description = 'Celery Cancel Tasks Wizard'
+
+    """ Only PENDING or STARTED tasks can be cancelled. Other states
+    are meaningfull already. """
+
+    @api.model
+    def _default_task_ids(self):
+        res = False
+        context = self.env.context
+        if (context.get('active_model') == 'celery.task' and
+                context.get('active_ids')):
+            task_ids = context['active_ids']
+            res = self.env['celery.task'].search([
+                ('id', 'in', context['active_ids']),
+                ('state', 'in', STATES_TO_CANCEL)]).ids
+        return res
+
+    task_ids = fields.Many2many(
+        'celery.task', string='Tasks', default=_default_task_ids,
+        domain=[('state', 'in', STATES_TO_CANCEL)])
+
+    @api.multi
+    def action_cancel(self):
+        self.task_ids.cancel()
         return {'type': 'ir.actions.act_window_close'}
 
 
