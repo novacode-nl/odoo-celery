@@ -18,6 +18,8 @@
         'security/celery_security.xml',
         'security/ir_model_access.xml',
         'wizard/celery_task_handle_jammed_views.xml',
+        'wizard/celery_task_requeue_views.xml',
+        'wizard/celery_task_cancel_views.xml',
         'report/celery_task_report_views.xml',
         'views/celery_task_views.xml',
         'views/celery_menu.xml',
