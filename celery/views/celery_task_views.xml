@@ -10,7 +10,8 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	    <field name="type">tree</field>
 	    <field name="arch" type="xml">
 		<tree string="Celery Tasks" create="false"
-                      decoration-muted="state in ('SUCCESS', 'CANCEL')" decoration-danger="state == 'FAILURE'">
+                      decoration-muted="state in ('SUCCESS', 'CANCEL')" decoration-danger="state == 'FAILURE'"
+                      decoration-bf="state == 'JAMMED'">
 		    <field name="uuid"/>
                     <field name="model"/>
                     <field name="method"/>
@@ -101,8 +102,8 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             domain="[('state', '=', 'PENDING')]"/>
                     <filter name="started" string="Started"
                             domain="[('state', '=', 'STARTED')]"/>
-                    <filter name="stalled" string="Stalled"
-                            domain="[('state', '=', 'STALLED')]"/>
+                    <filter name="jammed" string="Jammed"
+                            domain="[('state', '=', 'JAMMED')]"/>
                     <filter name="retry" string="Retry"
                             domain="[('state', '=', 'RETRY')]"/>
                     <filter name="failure" string="Failure"

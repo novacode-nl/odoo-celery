@@ -22,7 +22,7 @@ TASK_NOT_FOUND = 'NOT_FOUND'
 
 STATE_PENDING = 'PENDING'
 STATE_STARTED = 'STARTED'
-STATE_STALLED = 'STALLED'
+STATE_JAMMED = 'JAMMED'
 STATE_RETRY = 'RETRY'
 STATE_FAILURE = 'FAILURE'
 STATE_SUCCESS = 'SUCCESS'
@@ -30,14 +30,15 @@ STATE_CANCEL = 'CANCEL'
 
 STATES = [(STATE_PENDING, 'Pending'),
           (STATE_STARTED, 'Started'),
-          (STATE_STALLED, 'Stalled'),
+          (STATE_JAMMED, 'Jammed'),
           (STATE_RETRY, 'Retry'),
           (STATE_FAILURE, 'Failure'),
           (STATE_SUCCESS, 'Success'),
           (STATE_CANCEL, 'Cancel')]
 
-STATES_TO_REQUEUE = ['PENDING', 'STALLED', 'RETRY', 'FAILURE']
-STATES_TO_CANCEL = ['PENDING', 'STARTED', 'STALLED']
+STATES_TO_CANCEL = [STATE_PENDING, STATE_JAMMED]
+STATES_TO_REQUEUE = [STATE_PENDING, STATE_JAMMED, STATE_RETRY, STATE_FAILURE]
+STATES_TO_JAMMED = [STATE_STARTED, STATE_RETRY]
 
 def _get_celery_user_config():
     user = (os.environ.get('ODOO_CELERY_USER') or config.misc.get("celery", {}).get('user'))
@@ -52,7 +53,7 @@ class CeleryTask(models.Model):
     # TODO Configure "Celery" group to access mail_thread ?
     #_inherit = ['mail.thread']
     _rec_name = 'uuid'
-    _order = 'create_date DESC'
+    _order = 'id DESC'
 
     uuid = fields.Char(string='UUID', readonly=True, index=True, required=True)
     queue = fields.Char(string='Queue', readonly=True, required=True, default=TASK_DEFAULT_QUEUE)
@@ -62,6 +63,7 @@ class CeleryTask(models.Model):
     method = fields.Char(string='Method', readonly=True)
     kwargs = TaskSerialized(readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
+    # TODO REFACTOR compute and store, by @api.depends (replace all ORM writes)
     state_date = fields.Datetime(string='State Time', readonly=True)
     result = fields.Text(string='Result', readonly=True)
     exc_info = fields.Text(string='Exception Info', readonly=True)
@@ -72,10 +74,11 @@ class CeleryTask(models.Model):
         required=True,
         readonly=True,
         index=True,
+        track_visibility='onchange',
         help="""\
         - PENDING: The task is waiting for execution.
         - STARTED: The task has been started.
-        - STALLED: The task has been Started, but due to inactivity marked as Stalled.
+        - JAMMED: The task has been Started, but due to inactivity marked as Jammed.
         - RETRY: The task is to be retried, possibly because of failure.
         - FAILURE: The task raised an exception, or has exceeded the retry limit.
         - SUCCESS: The task executed successfully.
@@ -324,6 +327,23 @@ class CeleryTask(models.Model):
         return True
 
     @api.multi
+    def jammed(self):
+        user, password, sudo = _get_celery_user_config()
+        user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
+
+        if not user_id:
+            raise UserError('No user found with login: {login}'.format(login=user))
+        user_id = user_id[0]['id']
+
+        for task in self:
+            if task.state in STATES_TO_JAMMED:
+                task.write({
+                    'state': STATE_JAMMED,
+                    'state_date': fields.Datetime.now()
+                })
+        return True
+
+    @api.multi
     def action_open_related_record(self):
         """ Open a view with the record(s) of the task.  If it's one record,
         it opens a form-view.  If it concerns mutltiple records, it opens
@@ -356,6 +376,18 @@ class CeleryTask(models.Model):
     def refresh_view(self):
         return True
 
+    @api.model
+    def cron_jammed_tasks(self):
+        time_window = self.env['ir.config_parameter'].sudo().get_param('celery.task.jammed.time.window')
+        if not time_window or not time_window.isdigit(): 
+           return
+
+        TaskReport = self.env['celery.task.report']
+        domain = [
+            ('state', 'in', [STATE_STARTED, STATE_RETRY]),
+            ('age_hours', '>', int(time_window.value))
+        ]
+        tasks = TaskReport.search(domain)
 
 class RequeueTask(models.TransientModel):
     _name = 'celery.requeue.task'
