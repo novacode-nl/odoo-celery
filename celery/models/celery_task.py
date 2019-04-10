@@ -184,7 +184,7 @@ class CeleryTask(models.Model):
             return (TASK_NOT_FOUND, msg)
 
         model_obj = self.env[model]
-        task = self.search([('uuid', '=', task_uuid), ('state', 'in', [STATE_PENDING, STATE_RETRY, STATE_FAILURE])], limit=1)
+        task = self.search([('uuid', '=', task_uuid), ('state', 'in', [STATE_PENDING, STATE_RETRY])], limit=1)
 
         if not task:
             return ('OK', 'Task already processed')
