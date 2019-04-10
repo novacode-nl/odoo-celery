@@ -42,13 +42,16 @@
     <h3 class="oe_slogan">Just Python code to call from an Odoo model</h3>
     <div class="oe_row_img oe_centered">
       <strong>Optional Celery parameters:</strong>
-      <pre>celery = {
-        'countdown': 3,
-        'retry': True,
-        'max_retries': 3,
-        'interval_start': 2,
-        'queue': 'high.priority'
-        }</pre>
+      <pre>
+celery = {
+    'queue': 'high.priority',
+    'countdown': 2,
+    'retry': True,
+    'retry_policy': {
+       'max_retries': 5,
+       'interval_start': 2
+    }
+}</pre>
       <strong>Put a model-method as a task on the queue:</strong>
       <ul>
         <li><strong>model</strong>: "celery.example"</li>
