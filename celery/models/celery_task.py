@@ -50,8 +50,7 @@ def _get_celery_user_config():
 class CeleryTask(models.Model):
     _name = 'celery.task'
     _description = 'Celery Task'
-    # TODO Configure "Celery" group to access mail_thread ?
-    #_inherit = ['mail.thread']
+    _inherit = ['mail.thread']
     _rec_name = 'uuid'
     _order = 'id DESC'
 
