@@ -9,7 +9,9 @@
     'author': 'Nova Code',
     'website': 'https://www.novacode.nl',
     'license': "LGPL-3",
-    'depends': ['base'],
+    'depends': [
+        'mail'
+    ],
     'external_dependencies': {
         'python': ['celery'],
     },
