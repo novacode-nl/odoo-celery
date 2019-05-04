@@ -61,6 +61,7 @@ class CeleryTask(models.Model):
     model = fields.Char(string='Model', readonly=True)
     method = fields.Char(string='Method', readonly=True)
     kwargs = TaskSerialized(readonly=True)
+    payload_id = fields.Char(string='Payload ID', readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
     # TODO REFACTOR compute and store, by @api.depends (replace all ORM writes)
     state_date = fields.Datetime(string='State Time', readonly=True)
@@ -97,6 +98,19 @@ class CeleryTask(models.Model):
         'Default is 0.2.') # Don't default here (Celery already does)
     countdown = fields.Integer(help='ETA by seconds into the future. Also used in the retry.')
 
+    @api.model
+    def create(self, vals):
+        payload_id = vals.get('payload_id')
+        if payload_id:
+            domain = [
+                ('state', '=', STATE_PENDING),
+                ('payload_id', '=', payload_id)
+            ]
+            if self.search_count(domain) == 0:
+                return super(CeleryTask, self).create(vals)
+        else:
+            return super(CeleryTask, self).create(vals)
+
     @api.multi
     def unlink(self):
         for task in self:
@@ -132,6 +146,10 @@ class CeleryTask(models.Model):
                 vals.update(celery_vals.get('retry_policy'))
                 del celery_vals['retry_policy']
             vals.update(celery_vals)
+
+        if kwargs.get('celery_task'):
+            celery_task_vals = copy.copy(kwargs.get('celery_task'))
+            vals.update(celery_task_vals)
 
         with registry(self._cr.dbname).cursor() as cr:
             env = api.Environment(cr, user_id, {})
@@ -190,9 +208,13 @@ class CeleryTask(models.Model):
         
         exist = self.search_count([('uuid', '=', task_uuid)])
         if exist == 0:
-            msg = "Task doesn't exist (anymore). Task-UUID: %s" % task_uuid
-            logger.error(msg)
-            return (TASK_NOT_FOUND, msg)
+            if kwargs.get('celery_task', {}).get('payload_id'):
+                return 'Task with payload ID {payload_id} already queued'.format(
+                    payload_id=kwargs.get('celery_task', {}).get('payload_id'))
+            else:
+                msg = "Task doesn't exist (anymore). Task-UUID: %s" % task_uuid
+                logger.error(msg)
+                return (TASK_NOT_FOUND, msg)
 
         model_obj = self.env[model]
         task = self.search([('uuid', '=', task_uuid), ('state', 'in', [STATE_PENDING, STATE_RETRY])], limit=1)
