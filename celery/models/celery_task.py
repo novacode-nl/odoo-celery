@@ -40,6 +40,10 @@ STATES_TO_CANCEL = [STATE_PENDING, STATE_JAMMED]
 STATES_TO_REQUEUE = [STATE_PENDING, STATE_JAMMED, STATE_RETRY, STATE_FAILURE]
 STATES_TO_JAMMED = [STATE_STARTED, STATE_RETRY]
 
+CELERY_PARAMS = [
+    'queue', 'retry', 'max_retries', 'interval_start', 'interval_step',
+    'countdown']
+
 def _get_celery_user_config():
     user = (os.environ.get('ODOO_CELERY_USER') or config.misc.get("celery", {}).get('user'))
     password = (os.environ.get('ODOO_CELERY_PASSWORD') or config.misc.get("celery", {}).get('password'))
@@ -110,6 +114,18 @@ class CeleryTask(models.Model):
                 return super(CeleryTask, self).create(vals)
         else:
             return super(CeleryTask, self).create(vals)
+
+    @api.multi
+    def write(self, vals):
+        celery_params = {param: vals[param] for param in CELERY_PARAMS if param in vals}
+
+        if bool(celery_params):
+            kwargs = self.kwargs and json.loads(self.kwargs) or {}
+            if not kwargs.get('celery'):
+                kwargs['celery'] = {}
+            kwargs['celery'].update(celery_params)
+            vals['kwargs'] = kwargs
+        return super(CeleryTask, self).write(vals)
 
     @api.multi
     def unlink(self):
