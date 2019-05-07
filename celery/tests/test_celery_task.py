@@ -48,26 +48,6 @@ class TestCeleryTask(TransactionCase):
         with self.assertRaisesRegex(UserError, 'You cannot delete a running task'), mute_logger('odoo.sql_db'):
             task.unlink()
 
-    def test_check_pending_payload_id(self):
-        """ Prevent duplicate creation of PENDING task by payload ID """
-
-        Task = self.env['celery.task']
-        payload_id = 'celery.task.dummy_method'
-        vals = {
-            'uuid': str(uuid.uuid4()),
-            'user_id': self.env.user.id,
-            'model': 'celery.task',
-            'method': 'dummy_method',
-            'payload_id': payload_id
-        }
-
-        task_1 = Task.create(vals)
-        self.assertIsInstance(task_1, CeleryTask)
-        
-        vals['uuid'] = str(uuid.uuid4())
-        task_2 = Task.create(vals)
-        self.assertIsNone(task_2)
-
     def test_write_task_update_celery_kwargs(self):
         """ Write task (Celery param fields) update Celery kwargs """
 

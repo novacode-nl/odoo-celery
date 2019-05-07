@@ -65,7 +65,6 @@ class CeleryTask(models.Model):
     model = fields.Char(string='Model', readonly=True)
     method = fields.Char(string='Method', readonly=True)
     kwargs = TaskSerialized(readonly=True)
-    payload_id = fields.Char(string='Payload ID', readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
     # TODO REFACTOR compute and store, by @api.depends (replace all ORM writes)
     state_date = fields.Datetime(string='State Time', readonly=True)
@@ -101,19 +100,6 @@ class CeleryTask(models.Model):
         help='On each consecutive retry this number will be added to the retry delay (float or integer). '\
         'Default is 0.2.') # Don't default here (Celery already does)
     countdown = fields.Integer(help='ETA by seconds into the future. Also used in the retry.')
-
-    @api.model
-    def create(self, vals):
-        payload_id = vals.get('payload_id')
-        if payload_id:
-            domain = [
-                ('state', '=', STATE_PENDING),
-                ('payload_id', '=', payload_id)
-            ]
-            if self.search_count(domain) == 0:
-                return super(CeleryTask, self).create(vals)
-        else:
-            return super(CeleryTask, self).create(vals)
 
     @api.multi
     def write(self, vals):
@@ -224,13 +210,9 @@ class CeleryTask(models.Model):
         
         exist = self.search_count([('uuid', '=', task_uuid)])
         if exist == 0:
-            if kwargs.get('celery_task', {}).get('payload_id'):
-                return 'Task with payload ID {payload_id} already queued'.format(
-                    payload_id=kwargs.get('celery_task', {}).get('payload_id'))
-            else:
-                msg = "Task doesn't exist (anymore). Task-UUID: %s" % task_uuid
-                logger.error(msg)
-                return (TASK_NOT_FOUND, msg)
+            msg = "Task doesn't exist (anymore). Task-UUID: %s" % task_uuid
+            logger.error(msg)
+            return (TASK_NOT_FOUND, msg)
 
         model_obj = self.env[model]
         task = self.search([('uuid', '=', task_uuid), ('state', 'in', [STATE_PENDING, STATE_RETRY])], limit=1)
