@@ -16,7 +16,8 @@ class CeleryJammedTaskSetting(models.Model):
     jammed_seconds = fields.Integer(
         string='Jammed After Seconds', required=True, track_visibility='onchange')
     handle_by_cron = fields.Boolean(
-        string='Handle by Cron', default=False, track_visibility='onchange')
+        string='Handle by Cron', default=False, track_visibility='onchange',
+        help='Cron shall update Tasks which seems Jammed to state Jammed.')
     active = fields.Boolean(string='Active', default=True, track_visibility='onchange')
 
     _sql_constraints = [('model_method_unique', 'UNIQUE(model, method)', 'Combination of Model and Method already exists!')]
