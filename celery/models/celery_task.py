@@ -184,7 +184,9 @@ class CeleryTask(models.Model):
 
         # TODO DEPRECATED compatibility to remove after v12
         celery_kwargs = kwargs.get('celery')
-        if celery_kwargs and celery_kwargs.get('retry') and not celery_kwargs.get('retry_policy'):
+        if not celery_kwargs:
+            kwargs['celery'] = {}
+        elif celery_kwargs.get('retry') and not celery_kwargs.get('retry_policy'):
             retry_policy = {}
             if celery_kwargs.get('max_retries'):
                 retry_policy['max_retries'] = celery_kwargs.get('max_retries')
