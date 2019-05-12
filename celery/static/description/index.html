@@ -142,8 +142,9 @@ celery = {
     <h4 class="oe_mb16">0.6</h4>
     <em>Introduction of "Jammed" tasks. A jammed task could be caused, for example by: a stopped/restarted Celery worker, message broker, or server.</em>
     <ul>
-      <li>Tasks Analysis Report, which shows Jammed (not completed) tasks.</li>
-      <li>Cron or manually (from menu: Task Analysis) put tasks in "Jammed" state after a parameterized time window (hours).</li>
+      <li>Settings: to specify when a task (model, method) is Jammed after seconds from Started or Retry (states).</li>
+      <li>Jammaed Tasks Report: which shows Jammed (not completed) tasks.</li>
+      <li>Cron or manually put tasks in "Jammed" state.</li>
       <li>Ability to cancel (Pending or Jammed) tasks, which never completed.</li>
       <li>Track and messaging about state change. Chatter on form view.</li>
     </ul>

@@ -7,27 +7,32 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
         <menuitem id="menu_celery_root"
                   name="Celery"
                   web_icon="celery,static/description/icon.png"/>
-        <!-- groups="celery.group_celery_manager"/> -->
 
+        <!-- Tasks -->
         <menuitem id="menu_celery_task_root"
                   name="Tasks"
-                  parent="menu_celery_root"/>
-        <!-- groups="celery.group_celery_manager"/> -->
-
+                  parent="menu_celery_root"
+                  sequence="10"/>
         <menuitem id="menu_celery_task"
                   name="Tasks"
                   parent="menu_celery_task_root"
                   action="action_celery_task"
                   sequence="10"/>
-        <menuitem id="menu_celery_task_jammed"
-                  name="Tasks Jammed"
-                  parent="menu_celery_task_root"
-                  action="action_celery_task_jammed"
-                  sequence="50"/>
-        <menuitem id="menu_celery_task_report"
-                  name="Tasks Analysis Report"
-                  parent="menu_celery_task_root"
-                  action="action_celery_task_report"
-                  sequence="90"/>
+        <menuitem id="menu_celery_jammed_task_report"
+                  name="Jammed Tasks Report"
+                  parent="celery.menu_celery_task_root"
+                  action="action_celery_jammed_task_report"
+                  sequence="100"/>
+
+        <!-- Settings -->
+        <menuitem id="menu_celery_setting_root"
+                  name="Settings"
+                  parent="menu_celery_root"
+                  sequence="100"/>
+        <menuitem id="menu_celery_jammed_task_setting"
+                  name="Jammed Tasks"
+                  parent="celery.menu_celery_setting_root"
+                  action="action_celery_jammed_task_setting"
+                  sequence="30"/>
      </data>
 </odoo>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright Nova Code (http://www.novacode.nl)
+License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
+
+<odoo>
+    <data>
+        <record id="view_celery_jammed_task_report_tree" model="ir.ui.view">
+            <field name="name">celery.jammed.task.report.tree</field>
+            <field name="model">celery.jammed.task.report</field>
+            <field name="arch" type="xml">
+                <tree string="Celery Jammed Task Report" create="false" edit="false" delete="false"
+                      default_order="id desc">
+                    <field name="task_id"/>
+                    <field name="model"/>
+                    <field name="method"/>
+                    <field name="queue"/>
+                    <field name="started_date"/>
+                    <field name="state_date"/>
+                    <field name="started_age_hours"/>
+                    <field name="state_age_hours"/>
+                    <field name="started_age_minutes"/>
+                    <field name="state_age_minutes"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+	<record id="view_celery_jammed_task_report_search" model="ir.ui.view">
+	    <field name="name">celery.jammed.task.report.search</field>
+	    <field name="model">celery.jammed.task.report</field>
+	    <field name="type">search</field>
+	    <field name="arch" type="xml">
+		<search string="Celery Jammed Task Report">
+                    <field name="task_id"/>
+                    <field name="state"/>
+		</search>
+	    </field>
+	</record>
+
+        <!-- Action, menu -->
+        <record id="action_celery_jammed_task_report" model="ir.actions.act_window">
+            <field name="name">Celery Jammed Task Report</field>
+            <field name="res_model">celery.jammed.task.report</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+	<act_window
+            id="action_celery_task_set_state_jammed"
+            name="Update state to Jammed"
+            src_model="celery.jammed.task.report" res_model="celery.handle.jammed.task"
+            view_mode="form" view_type="form" view_id="view_celery_handle_jammed_task_form"
+	    target="new" multi="False" key2="client_action_multi"/>
+    </data>
+</odoo>

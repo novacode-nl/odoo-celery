@@ -9,9 +9,9 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             <field name="model_id" ref="model_celery_task"/>
             <field name="state">code</field>
             <field name="code">model.cron_handle_jammed_tasks()</field>
-            <field eval="False" name="active" />
-            <field name="user_id" ref="base.user_root" />
-            <field name="interval_number">4</field>
+            <field name="active" eval="False"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">2</field>
             <field name="interval_type">hours</field>
             <field name="numbercall">-1</field>
             <field name="priority">10</field>

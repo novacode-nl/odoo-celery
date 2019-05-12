@@ -4,11 +4,11 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 
 <odoo>
     <data>
-        <record id="view_celery_task_handle_jammed_form" model="ir.ui.view">
-            <field name="name">Celery Task Handle Jammed</field>
-            <field name="model">celery.task.handle.jammed</field>
+        <record id="view_celery_handle_jammed_task_form" model="ir.ui.view">
+            <field name="name">Celery Handle Jammed Task</field>
+            <field name="model">celery.handle.jammed.task</field>
             <field name="arch" type="xml">
-                <form string="Change Task Handle Jammed">
+                <form string="Change Task to Jammed">
                     <group string="The state of selected tasks shall changed to Jammed.">
                         <field name="task_ids" nolabel="1"/>
                     </group>

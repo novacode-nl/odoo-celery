@@ -22,23 +22,24 @@ TASK_NOT_FOUND = 'NOT_FOUND'
 
 STATE_PENDING = 'PENDING'
 STATE_STARTED = 'STARTED'
-STATE_JAMMED = 'JAMMED'
 STATE_RETRY = 'RETRY'
 STATE_FAILURE = 'FAILURE'
 STATE_SUCCESS = 'SUCCESS'
+STATE_JAMMED = 'JAMMED'
 STATE_CANCEL = 'CANCEL'
 
 STATES = [(STATE_PENDING, 'Pending'),
           (STATE_STARTED, 'Started'),
-          (STATE_JAMMED, 'Jammed'),
           (STATE_RETRY, 'Retry'),
+          (STATE_JAMMED, 'Jammed'),
           (STATE_FAILURE, 'Failure'),
           (STATE_SUCCESS, 'Success'),
           (STATE_CANCEL, 'Cancel')]
 
-STATES_TO_CANCEL = [STATE_PENDING, STATE_JAMMED]
-STATES_TO_REQUEUE = [STATE_PENDING, STATE_JAMMED, STATE_RETRY, STATE_FAILURE]
 STATES_TO_JAMMED = [STATE_STARTED, STATE_RETRY]
+STATES_TO_CANCEL = [STATE_PENDING, STATE_JAMMED]
+STATES_TO_REQUEUE = [STATE_PENDING, STATE_RETRY, STATE_JAMMED, STATE_FAILURE]
+
 
 CELERY_PARAMS = [
     'queue', 'retry', 'max_retries', 'interval_start', 'interval_step',
@@ -71,7 +72,7 @@ class CeleryTask(models.Model):
     result = fields.Text(string='Result', readonly=True)
     exc_info = fields.Text(string='Exception Info', readonly=True)
     state = fields.Selection(
-        STATES,
+        selection='_selection_states',
         string="State",
         default=STATE_PENDING,
         required=True,
@@ -81,8 +82,8 @@ class CeleryTask(models.Model):
         help="""\
         - PENDING: The task is waiting for execution.
         - STARTED: The task has been started.
-        - JAMMED: The task has been Started, but due to inactivity marked as Jammed.
         - RETRY: The task is to be retried, possibly because of failure.
+        - JAMMED: The task has been Started, but due to inactivity marked as Jammed.
         - FAILURE: The task raised an exception, or has exceeded the retry limit.
         - SUCCESS: The task executed successfully.
         - CANCEL: The task has been aborted and cancelled by user action.""")
@@ -100,6 +101,9 @@ class CeleryTask(models.Model):
         help='On each consecutive retry this number will be added to the retry delay (float or integer). '\
         'Default is 0.2.') # Don't default here (Celery already does)
     countdown = fields.Integer(help='ETA by seconds into the future. Also used in the retry.')
+
+    def _selection_states(self):
+        return STATES
 
     @api.multi
     def write(self, vals):
@@ -302,15 +306,20 @@ class CeleryTask(models.Model):
             msg = 'Task already in state {state}.'.format(state=state)
             return ('OK', msg)
 
-    def set_state_pending(self):
-        self.state = STATE_PENDING
-        self.started_date = None
-        self.state_date = None
-        self.result = None
-        self.exc_info = None
+    @api.multi
+    def action_pending(self):
+        for task in self:
+            task.state = STATE_PENDING
+            task.started_date = None
+            task.state_date = None
+            task.result = None
+            task.exc_info = None
+
+    def _states_to_requeue(self):
+        return STATES_TO_REQUEUE
 
     @api.multi
-    def requeue(self):
+    def action_requeue(self):
         user, password, sudo = _get_celery_user_config()
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
 
@@ -318,9 +327,11 @@ class CeleryTask(models.Model):
             raise UserError('No user found with login: {login}'.format(login=user))
         user_id = user_id[0]['id']
 
+        states_to_requeue = self._states_to_requeue()
+
         for task in self:
-            if task.state in STATES_TO_REQUEUE:
-                task.set_state_pending()
+            if task.state in states_to_requeue:
+                task.action_pending()
                 try:
                     _kwargs = json.loads(task.kwargs)
                     self._celery_call_task(task.user_id.id, task.uuid, task.model, task.method, _kwargs)
@@ -328,8 +339,11 @@ class CeleryTask(models.Model):
                     logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
         return True
 
+    def _states_to_cancel(self):
+        return STATES_TO_CANCEL
+
     @api.multi
-    def cancel(self):
+    def action_cancel(self):
         user, password, sudo = _get_celery_user_config()
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
 
@@ -337,8 +351,10 @@ class CeleryTask(models.Model):
             raise UserError('No user found with login: {login}'.format(login=user))
         user_id = user_id[0]['id']
 
+        states_to_cancel = self._states_to_cancel()
+
         for task in self:
-            if task.state in STATES_TO_CANCEL:
+            if task.state in states_to_cancel:
                 task.write({
                     'state': STATE_CANCEL,
                     'state_date': fields.Datetime.now()
@@ -346,7 +362,7 @@ class CeleryTask(models.Model):
         return True
 
     @api.multi
-    def jammed(self):
+    def action_jammed(self):
         user, password, sudo = _get_celery_user_config()
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
 
@@ -361,6 +377,15 @@ class CeleryTask(models.Model):
                     'state_date': fields.Datetime.now()
                 })
         return True
+
+    @api.model
+    def cron_handle_jammed_tasks(self):
+        JammedTaskReport = self.env['celery.jammed.task.report']
+        domain = [('jammed', '=', True)]
+        tasks = JammedTaskReport.search(domain)
+        for t in tasks:
+            if t.handle_by_cron:
+                t.task_id.action_jammed()
 
     @api.multi
     def action_open_related_record(self):
@@ -394,18 +419,6 @@ class CeleryTask(models.Model):
     @api.multi
     def refresh_view(self):
         return True
-
-    @api.model
-    def cron_handle_jammed_tasks(self):
-        time_window = self.env['ir.config_parameter'].sudo().get_param('celery.task.jammed.time.window')
-        if not time_window or not time_window.isdigit(): 
-           return
-
-        TaskReport = self.env['celery.task.report']
-        domain = [('jammed', '=', True)]
-        tasks = TaskReport.search(domain)
-        for t in tasks:
-            t.task_id.jammed()
 
 
 class CeleryCallTaskException(Exception):

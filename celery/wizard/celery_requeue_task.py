@@ -3,15 +3,12 @@
 
 from odoo import api, fields, models
 
-from ..models.celery_task import STATES_TO_CANCEL
+from ..models.celery_task import STATES_TO_REQUEUE
 
 
-class CancelTask(models.TransientModel):
-    _name = 'celery.cancel.task'
-    _description = 'Celery Cancel Tasks Wizard'
-
-    """ Only PENDING or JAMMED tasks can be cancelled. Other states
-    are meaningfull already. """
+class RequeueTask(models.TransientModel):
+    _name = 'celery.requeue.task'
+    _description = 'Celery Requeue Tasks Wizard'
 
     @api.model
     def _default_task_ids(self):
@@ -22,14 +19,14 @@ class CancelTask(models.TransientModel):
             task_ids = context['active_ids']
             res = self.env['celery.task'].search([
                 ('id', 'in', context['active_ids']),
-                ('state', 'in', STATES_TO_CANCEL)]).ids
+                ('state', 'in', STATES_TO_REQUEUE)]).ids
         return res
 
     task_ids = fields.Many2many(
         'celery.task', string='Tasks', default=_default_task_ids,
-        domain=[('state', 'in', STATES_TO_CANCEL)])
+        domain=[('state', 'in', STATES_TO_REQUEUE)])
 
     @api.multi
-    def action_cancel(self):
-        self.task_ids.cancel()
+    def action_requeue(self):
+        self.task_ids.action_requeue()
         return {'type': 'ir.actions.act_window_close'}

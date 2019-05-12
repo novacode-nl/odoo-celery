@@ -3,30 +3,29 @@
 
 from odoo import api, fields, models
 
-from ..models.celery_task import STATES_TO_JAMMED
+from ..models.celery_task import STATES_TO_CANCEL
 
 
-class CeleryTaskHandleJammed(models.TransientModel):
-    _name = 'celery.task.handle.jammed'
-    _description = 'Handle Jammed Tasks'
+class CancelTask(models.TransientModel):
+    _name = 'celery.cancel.task'
+    _description = 'Celery Cancel Task Wizard'
 
     @api.model
     def _default_task_ids(self):
+        states_to_cancel = self.env['celery.task']._states_to_cancel()
         res = False
         context = self.env.context
-        if (context.get('active_model') == 'celery.task.report' and
+        if (context.get('active_model') == 'celery.task' and
                 context.get('active_ids')):
             task_ids = context['active_ids']
             res = self.env['celery.task'].search([
                 ('id', 'in', context['active_ids']),
-                ('state', 'in', STATES_TO_JAMMED)]).ids
+                ('state', 'in', states_to_cancel)]).ids
         return res
 
-    task_ids = fields.Many2many(
-        'celery.task', string='Tasks', default=_default_task_ids,
-        domain=[('state', 'in', STATES_TO_JAMMED)])
+    task_ids = fields.Many2many('celery.task', string='Tasks', default=_default_task_ids)
 
     @api.multi
-    def action_handle_jammed_tasks(self):
-        self.task_ids.jammed()
+    def action_cancel(self):
+        self.task_ids.action_cancel()
         return {'type': 'ir.actions.act_window_close'}
