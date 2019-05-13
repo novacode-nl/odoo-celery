@@ -17,5 +17,20 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             <field name="priority">10</field>
             <field eval="False" name="doall" />
         </record>
+
+        <record id="ir_cron_celery_autovacuum_tasks" forcecreate="True" model="ir.cron">
+            <field name="name">Celery: Autovacuum Tasks</field>
+            <field name="model_id" ref="model_celery_task"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_autovacuum(days=7)</field>
+            <field name="active" eval="True"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+            <field name="priority">10</field>
+            <field eval="False" name="doall" />
+        </record>
+
     </data>
 </odoo>
