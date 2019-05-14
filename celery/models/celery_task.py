@@ -401,11 +401,11 @@ class CeleryTask(models.Model):
                                             minutes=minutes, seconds=seconds)
         states = ['SUCCESS', 'FAILURE', 'CANCEL']
         if not success:
-            states.pop('SUCCESS')
+            states.remove('SUCCESS')
         if not failure:
-            states.pop('FAILURE')
+            states.remove('FAILURE')
         if not cancel:
-            states.pop('CANCEL')
+            states.remove('CANCEL')
         # Remove tasks in a loop with rows_per_run step
         while True:
             tasks = self.sudo().search([('create_date', '<=', from_date),
