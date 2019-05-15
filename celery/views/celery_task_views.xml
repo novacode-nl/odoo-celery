@@ -14,6 +14,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 		    <field name="uuid"/>
                     <field name="model"/>
                     <field name="method"/>
+                    <field name="payload_id"/>                    
                     <field name="queue"/>
                     <field name="create_date" readonly="1"/>
                     <field name="started_date"/>
@@ -41,6 +42,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                         <field name="res_model" invisible="1"/>
                         <group>
                             <field name="uuid"/>
+                             <field name="payload_id" attrs="{'invisible': [('payload_id', '=', False)]}"/>
                         </group>
                         <group>
                             <group>
@@ -103,6 +105,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="model"/>
                     <field name="method"/>
                     <field name="queue"/>
+                    <field name="payload_id"/>
                     <filter name="pending" string="Pending"
                             domain="[('state', '=', 'PENDING')]"/>
                     <filter name="started" string="Started"

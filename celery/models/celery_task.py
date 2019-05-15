@@ -66,6 +66,7 @@ class CeleryTask(models.Model):
     model = fields.Char(string='Model', readonly=True)
     method = fields.Char(string='Method', readonly=True)
     kwargs = TaskSerialized(readonly=True)
+    payload_id = fields.Char(string='Payload ID', readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
     # TODO REFACTOR compute and store, by @api.depends (replace all ORM writes)
     state_date = fields.Datetime(string='State Time', readonly=True)
