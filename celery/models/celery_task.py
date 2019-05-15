@@ -154,8 +154,8 @@ class CeleryTask(models.Model):
                 del celery_vals['retry_policy']
             vals.update(celery_vals)
 
-        if kwargs.get('celery_task'):
-            celery_task_vals = copy.copy(kwargs.get('celery_task'))
+        if kwargs.get('celery_task_vals'):
+            celery_task_vals = copy.copy(kwargs.get('celery_task_vals'))
             vals.update(celery_task_vals)
 
         with registry(self._cr.dbname).cursor() as cr:

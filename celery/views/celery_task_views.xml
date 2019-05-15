@@ -14,7 +14,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 		    <field name="uuid"/>
                     <field name="model"/>
                     <field name="method"/>
-                    <field name="payload_id"/>                    
+                    <field name="payload_id"/>
                     <field name="queue"/>
                     <field name="create_date" readonly="1"/>
                     <field name="started_date"/>

@@ -23,10 +23,10 @@ class CeleryExample(models.Model):
             'countdown': 10, 'retry': True,
             'retry_policy': {'max_retries': 2, 'interval_start': 2}
         }
-        celery_task = {
+        celery_task_vals = {
             'payload_id': 'celery.example.task_with_payload_id'
         }
-        self.env["celery.task"].call_task("celery.example", "task_with_payload_id", example_id=self.id, celery_task=celery_task, celery=celery)
+        self.env["celery.task"].call_task("celery.example", "task_with_payload_id", example_id=self.id, celery_task_vals=celery_task_vals, celery=celery)
 
     @api.multi
     def action_task_queue_default(self):
