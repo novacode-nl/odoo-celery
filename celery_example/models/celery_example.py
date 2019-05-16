@@ -18,15 +18,15 @@ class CeleryExample(models.Model):
     lines = fields.One2many('celery.example.line', 'example_id', string='Lines')
 
     @api.multi
-    def action_task_with_payload_id(self):
+    def action_task_with_reference(self):
         celery = {
             'countdown': 10, 'retry': True,
             'retry_policy': {'max_retries': 2, 'interval_start': 2}
         }
         celery_task_vals = {
-            'payload_id': 'celery.example.task_with_payload_id'
+            'reference': 'celery.example.task_with_reference'
         }
-        self.env["celery.task"].call_task("celery.example", "task_with_payload_id", example_id=self.id, celery_task_vals=celery_task_vals, celery=celery)
+        self.env["celery.task"].call_task("celery.example", "task_with_reference", example_id=self.id, celery_task_vals=celery_task_vals, celery=celery)
 
     @api.multi
     def action_task_queue_default(self):
@@ -53,8 +53,8 @@ class CeleryExample(models.Model):
         self.env["celery.task"].call_task("celery.example", "task_queue_low", example_id=self.id, celery=celery)
 
     @api.model
-    def task_with_payload_id(self, task_uuid, **kwargs):
-        task = 'task_with_payload_id'
+    def task_with_reference(self, task_uuid, **kwargs):
+        task = 'task_with_reference'
         example_id = kwargs.get('example_id')
         self.env['celery.example.line'].create({
             'name': task,

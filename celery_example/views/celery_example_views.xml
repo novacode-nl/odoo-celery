@@ -11,7 +11,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                 <tree string="Celery Example">
                     <field name="name"/>
                     <field name="lines"/>
-                    <button name="action_task_with_payload_id" type="object" string="Task with Payload ID"/>
+                    <button name="action_task_with_reference" type="object" string="Task with Reference"/>
                     <button name="action_task_queue_default" type="object" string="Task queue=default"/>
                     <button name="action_task_queue_high" type="object" string="Task queue=high"/>
                     <button name="action_task_queue_low" type="object" string="Task queue=low"/>
@@ -30,7 +30,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                         <div class="oe_title">
                             <h1><field name="name" nolabel="1"/></h1>
                         </div>
-                        <button name="action_task_with_payload_id" type="object" string="Task with payload_id"/>
+                        <button name="action_task_with_reference" type="object" string="Task with Reference"/>
                         <button name="action_task_queue_default" type="object" string="Task default"/>
                         <button name="action_task_queue_high" type="object" string="Task queue=high"/>
                         <button name="action_task_queue_low" type="object" string="Task queue=low"/>
