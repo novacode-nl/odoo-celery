@@ -14,7 +14,8 @@ class CeleryJammedTaskSetting(models.Model):
     model = fields.Char(string='Model', required=True)
     method = fields.Char(string='Method', required=True)
     jammed_seconds = fields.Integer(
-        string='Jammed After Seconds', required=True, track_visibility='onchange')
+        string='Jammed After Seconds', required=True, track_visibility='onchange',
+        help="A task seems Jammed when it's still in state STARTED or RETRY, after certain elapsed seconds.")
     handle_by_cron = fields.Boolean(
         string='Handle by Cron', default=False, track_visibility='onchange',
         help='Cron shall update Tasks which seems Jammed to state Jammed.')
