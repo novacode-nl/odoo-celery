@@ -24,7 +24,7 @@ class CeleryExample(models.Model):
             'retry_policy': {'max_retries': 2, 'interval_start': 2}
         }
         celery_task_vals = {
-            'reference': 'celery.example.task_with_reference'
+            'ref': 'celery.example.task_with_reference'
         }
         self.env["celery.task"].call_task("celery.example", "task_with_reference", example_id=self.id, celery_task_vals=celery_task_vals, celery=celery)
 
