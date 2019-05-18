@@ -24,7 +24,7 @@
         'wizard/celery_handle_jammed_task_views.xml',
         'report/celery_jammed_task_report_views.xml',
         'views/celery_task_views.xml',
-        'views/celery_jammed_task_setting_views.xml',
+        'views/celery_task_setting_views.xml',
         'views/celery_menu.xml',
     ],
     'images': [

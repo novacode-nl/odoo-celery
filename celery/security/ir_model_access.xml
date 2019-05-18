@@ -26,9 +26,9 @@ See LICENSE file for full copyright and licensing details. -->
             <field name="perm_unlink" eval="0"/>
         </record>
 
-        <record id="access_celery_jammed_task_setting_celery_manager" model="ir.model.access">
-            <field name="name">celery.jammed.task.setting: Celery Manager</field>
-            <field name="model_id" ref="celery.model_celery_jammed_task_setting"/>
+        <record id="access_celery_task_setting_celery_manager" model="ir.model.access">
+            <field name="name">celery.task.setting: Celery Manager</field>
+            <field name="model_id" ref="celery.model_celery_task_setting"/>
             <field name="group_id" ref="celery.group_celery_manager"/>
             <field name="perm_read" eval="1"/>
             <field name="perm_create" eval="1"/>

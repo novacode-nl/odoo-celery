@@ -13,6 +13,7 @@ _logger = logging.getLogger(__name__)
 
 class CeleryJammedTaskReport(models.Model):
     _name = 'celery.jammed.task.report'
+    _description = 'Jammed Tasks Report'
     _auto = False
     _rec_name = 'uuid'
     _order = 'task_id DESC'
@@ -35,7 +36,7 @@ class CeleryJammedTaskReport(models.Model):
     started_age_hours = fields.Float(string='Started Age Hours', readonly=True)
     state_age_hours = fields.Float(string='State Age Hours', readonly=True)
     jammed = fields.Boolean(string='Seems Jammed', readonly=True)
-    handle_by_cron = fields.Boolean(string='Handle by Cron', readonly=True)
+    jammed_handle_by_cron = fields.Boolean(string='Handle by Cron', readonly=True)
 
     def _query(self):
         query_str = """
@@ -55,13 +56,13 @@ class CeleryJammedTaskReport(models.Model):
               EXTRACT(EPOCH FROM timezone('UTC', now()) - t.state_date)/60 AS state_age_minutes,
               EXTRACT(EPOCH FROM timezone('UTC', now()) - t.started_date)/3600 AS started_age_hours,
               EXTRACT(EPOCH FROM timezone('UTC', now()) - t.state_date)/3600 AS state_age_hours,
-              jts.jammed_seconds AS jammed_seconds,
-              jts.handle_by_cron AS handle_by_cron
+              ts.jammed_after_seconds AS jammed_after_seconds,
+              ts.jammed_handle_by_cron AS jammed_handle_by_cron
             FROM
               celery_task AS t
-              LEFT JOIN celery_jammed_task_setting jts ON jts.model = t.model AND jts.method = t.method
+              LEFT JOIN celery_task_setting ts ON ts.model = t.model AND ts.method = t.method
             WHERE
-              jts.active = True
+              ts.active = True
           ),
           tasks_jammed AS (
             SELECT
@@ -81,11 +82,11 @@ class CeleryJammedTaskReport(models.Model):
               t.started_age_hours AS started_age_hours,
               t.state_age_hours AS state_age_hours,
               (CASE
-                 WHEN t.state = 'STARTED' AND t.jammed_seconds IS NOT NULL THEN t.started_age_seconds > t.jammed_seconds
-                 WHEN t.state = 'RETRY' AND t.jammed_seconds IS NOT NULL THEN t.state_age_seconds > t.jammed_seconds
+                 WHEN t.state = 'STARTED' AND t.jammed_after_seconds IS NOT NULL THEN t.started_age_seconds > t.jammed_after_seconds
+                 WHEN t.state = 'RETRY' AND t.jammed_after_seconds IS NOT NULL THEN t.state_age_seconds > t.jammed_after_seconds
                  ELSE False
               END) AS jammed,
-              t.handle_by_cron AS handle_by_cron
+              t.jammed_handle_by_cron AS jammed_handle_by_cron
             FROM
               tasks AS t
           )
@@ -106,7 +107,7 @@ class CeleryJammedTaskReport(models.Model):
               t.started_age_hours AS started_age_hours,
               t.state_age_hours AS state_age_hours,
               t.jammed AS jammed,
-              t.handle_by_cron AS handle_by_cron
+              t.jammed_handle_by_cron AS jammed_handle_by_cron
           FROM
             tasks_jammed AS t
           WHERE

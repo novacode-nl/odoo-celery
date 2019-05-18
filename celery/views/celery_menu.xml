@@ -19,7 +19,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                   action="action_celery_task"
                   sequence="10"/>
         <menuitem id="menu_celery_jammed_task_report"
-                  name="Jammed Tasks Report"
+                  name="Jammed Tasks"
                   parent="celery.menu_celery_task_root"
                   action="action_celery_jammed_task_report"
                   sequence="100"/>
@@ -29,10 +29,10 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                   name="Settings"
                   parent="menu_celery_root"
                   sequence="100"/>
-        <menuitem id="menu_celery_jammed_task_setting"
-                  name="Jammed Tasks"
+        <menuitem id="menu_celery_task_setting"
+                  name="Tasks"
                   parent="celery.menu_celery_setting_root"
-                  action="action_celery_jammed_task_setting"
+                  action="action_celery_task_setting"
                   sequence="30"/>
      </data>
 </odoo>

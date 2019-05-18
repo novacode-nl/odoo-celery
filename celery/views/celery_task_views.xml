@@ -131,7 +131,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
         </record>
 
         <record id="action_celery_task" model="ir.actions.act_window">
-            <field name="name">Celery Task</field>
+            <field name="name">Celery Tasks</field>
             <field name="res_model">celery.task</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>

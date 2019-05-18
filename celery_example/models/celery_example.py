@@ -57,7 +57,7 @@ class CeleryExample(models.Model):
         task = 'task_with_reference'
         example_id = kwargs.get('example_id')
         self.env['celery.example.line'].create({
-            'name': task,
+            'namexx': task,
             'example_id': example_id
         })
         msg = 'CELERY called task: model [%s] and method [%s].' % (self._name, task)

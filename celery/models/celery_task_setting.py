@@ -4,20 +4,20 @@
 from odoo import api, fields, models, _
 
 
-class CeleryJammedTaskSetting(models.Model):
-    _name = 'celery.jammed.task.setting'
-    _description = 'Celery Jammed Task Setting'
+class CeleryTaskSetting(models.Model):
+    _name = 'celery.task.setting'
+    _description = 'Celery Task Setting'
     _inherit = ['mail.thread']
     _order = 'name'
 
     name = fields.Char('Name', compute='_compute_name', store=True)
     model = fields.Char(string='Model', required=True)
     method = fields.Char(string='Method', required=True)
-    jammed_seconds = fields.Integer(
-        string='Jammed After Seconds', required=True, track_visibility='onchange',
+    jammed_after_seconds = fields.Integer(
+        string='Seems Jammed after seconds', required=True, track_visibility='onchange',
         help="A task seems Jammed when it's still in state STARTED or RETRY, after certain elapsed seconds.")
-    handle_by_cron = fields.Boolean(
-        string='Handle by Cron', default=False, track_visibility='onchange',
+    jammed_handle_by_cron = fields.Boolean(
+        string='Handle Jammed by Cron', default=False, track_visibility='onchange',
         help='Cron shall update Tasks which seems Jammed to state Jammed.')
     active = fields.Boolean(string='Active', default=True, track_visibility='onchange')
 
