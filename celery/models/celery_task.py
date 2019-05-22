@@ -274,8 +274,13 @@ class CeleryTask(models.Model):
                 transaction/cursor to store data about RETRY and exception info/traceback. """
 
                 exc_info = traceback.format_exc()
-                vals.update({'state': STATE_RETRY, 'state_date': fields.Datetime.now(), 'exc_info': exc_info})
-                logger.warning('Retry... exception (see task form) from rpc_run_task {uuid}: {exc}.'.format(uuid=task_uuid, exc=e))
+                if task.retry:
+                    state = STATE_RETRY
+                    logger.warning('Retry... exception (see task form) from rpc_run_task {uuid}: {exc}.'.format(uuid=task_uuid, exc=e))
+                else:
+                    state = STATE_FAILURE
+                    logger.warning('Failure... exception (see task form) from rpc_run_task {uuid}: {exc}.'.format(uuid=task_uuid, exc=e))
+                vals.update({'state': state, 'state_date': fields.Datetime.now(), 'exc_info': exc_info})
                 logger.debug('Exception rpc_run_task: {exc_info}'.format(uuid=task_uuid, exc_info=exc_info))
                 cr.rollback()
             finally:
