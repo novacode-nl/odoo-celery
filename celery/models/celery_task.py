@@ -392,7 +392,7 @@ class CeleryTask(models.Model):
         domain = [('jammed', '=', True)]
         tasks = JammedTaskReport.search(domain)
         for t in tasks:
-            if t.handle_by_cron:
+            if t.handle_jammed and t.handle_jammed_by_cron:
                 t.task_id.action_jammed()
 
     @api.multi
