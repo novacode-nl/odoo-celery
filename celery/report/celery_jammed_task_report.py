@@ -36,6 +36,7 @@ class CeleryJammedTaskReport(models.Model):
     started_age_hours = fields.Float(string='Started Age Hours', readonly=True)
     state_age_hours = fields.Float(string='State Age Hours', readonly=True)
     jammed = fields.Boolean(string='Seems Jammed', readonly=True)
+    handle_jammed = fields.Boolean(string='Handle Jammed', readonly=True)
     handle_jammed_by_cron = fields.Boolean(string='Handle Jammed by Cron', readonly=True)
 
     def _query(self):
@@ -108,7 +109,7 @@ class CeleryJammedTaskReport(models.Model):
               t.started_age_hours AS started_age_hours,
               t.state_age_hours AS state_age_hours,
               t.jammed AS jammed,
-              t.handle_jammed AS handle_jammed
+              t.handle_jammed AS handle_jammed,
               t.handle_jammed_by_cron AS handle_jammed_by_cron
           FROM
             tasks_jammed AS t
