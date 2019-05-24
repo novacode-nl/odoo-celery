@@ -12,8 +12,9 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                 <tree string="Task Setting" decoration-muted="(not active)">
                     <field name="model"/>
                     <field name="method"/>
+                    <field name="handle_jammed"/>
                     <field name="jammed_after_seconds"/>
-                    <field name="jammed_handle_by_cron"/>
+                    <field name="handle_jammed_by_cron"/>
                     <field name="active"/>
                 </tree>
             </field>
@@ -37,15 +38,18 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                 <field name="method"/>
                             </group>
                         </group>
-                        <group name="jammed" string="Jammed">
+                        <group name="jammed">
+                            <group colspan="2">
+                                <field name="handle_jammed"/>
+                            </group>
                             <group colspan="2">
                                 <p>A task seems Jammed when it's still in state <strong>Started</strong> or <strong>Retry</strong>, after certain elapsed seconds.</p>
                             </group>
-                            <group>
+                            <group attrs="{'invisible': [('handle_jammed', '=', False)]}">
                                 <field name="jammed_after_seconds"/>
                             </group>
-                            <group>
-                                <field name="jammed_handle_by_cron"/>
+                            <group attrs="{'invisible': [('handle_jammed', '=', False)]}">
+                                <field name="handle_jammed_by_cron"/>
                             </group>
                         </group>
                     </sheet>
