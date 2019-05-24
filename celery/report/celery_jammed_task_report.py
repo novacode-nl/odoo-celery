@@ -83,6 +83,7 @@ class CeleryJammedTaskReport(models.Model):
               t.state_age_minutes AS state_age_minutes,
               t.started_age_hours AS started_age_hours,
               t.state_age_hours AS state_age_hours,
+              t.handle_jammed AS handle_jammed,
               (CASE
                  WHEN t.state = 'STARTED' AND (t.handle_jammed AND t.jammed_after_seconds > 0) THEN t.started_age_seconds > t.jammed_after_seconds
                  WHEN t.state = 'RETRY' AND (t.handle_jammed AND t.jammed_after_seconds > 0) THEN t.state_age_seconds > t.jammed_after_seconds
