@@ -12,9 +12,9 @@ class CeleryTaskSetting(models.Model):
     _order = 'name'
 
     name = fields.Char('Name', compute='_compute_name', store=True)
-    model = fields.Char(string='Model', required=True)
-    method = fields.Char(string='Method', required=True)
-    handle_jammed = fields.Boolean(string="Handle Jammed")
+    model = fields.Char(string='Model', required=True, track_visibility='onchange')
+    method = fields.Char(string='Method', required=True, track_visibility='onchange')
+    handle_jammed = fields.Boolean(string="Handle Jammed", track_visibility='onchange')
     jammed_after_seconds = fields.Integer(
         string='Seems Jammed after seconds', track_visibility='onchange',
         help="A task seems Jammed when it's still in state STARTED or RETRY, after certain elapsed seconds.")
