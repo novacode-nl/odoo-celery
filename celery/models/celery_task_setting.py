@@ -2,6 +2,7 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
 from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class CeleryTaskSetting(models.Model):
@@ -22,7 +23,11 @@ class CeleryTaskSetting(models.Model):
         help='Cron shall update Tasks which seems Jammed to state Jammed.')
     active = fields.Boolean(string='Active', default=True, track_visibility='onchange')
 
-    _sql_constraints = [('model_method_unique', 'UNIQUE(model, method)', 'Combination of Model and Method already exists!')]
+    @api.constrains('model', 'method')
+    def _check_model_method_unique(self):
+        count = self.search_count([('model', '=', self.model), ('method', '=', self.method)])
+        if count > 1:
+            raise ValidationError(_('Combination of Model and Method already exists!'))
 
     @api.depends('model', 'method')
     def _compute_name(self):
