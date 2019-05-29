@@ -13,6 +13,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="task_id"/>
                     <field name="model"/>
                     <field name="method"/>
+                    <field name="ref"/>
                     <field name="queue"/>
                     <field name="started_date"/>
                     <field name="state_date"/>
@@ -43,6 +44,31 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             <field name="res_model">celery.jammed.task.report</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+        </record>
+
+	<record id="view_celery_jammed_task_report_search" model="ir.ui.view">
+	    <field name="name">celery.jammed.task.report.search</field>
+	    <field name="model">celery.jammed.task.report</field>
+	    <field name="type">search</field>
+	    <field name="arch" type="xml">
+		<search string="Celery Jammed Tasks">
+		    <field name="uuid"/>
+                    <field name="model"/>
+                    <field name="method"/>
+                    <field name="ref"/>
+                    <field name="queue"/>
+                    <filter name="started" string="Started"
+                            domain="[('state', '=', 'STARTED')]"/>
+                    <filter name="retry" string="Retry"
+                            domain="[('state', '=', 'RETRY')]"/>
+		    <group expand="0" string="Group By">
+	                <filter string="Model" name="model" domain="[]" context="{'group_by': 'model'}"/>
+	                <filter string="Task/method" name="method" domain="[]" context="{'group_by': 'method'}"/>
+                        <filter string="State" name="state" domain="[]" context="{'group_by': 'state'}"/>
+                        <filter string="Queue" name="queue" domain="[]" context="{'group_by': 'queue'}"/>
+                    </group>
+                </search>
+	    </field>
         </record>
 
 	<act_window

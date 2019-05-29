@@ -25,6 +25,7 @@ class CeleryJammedTaskReport(models.Model):
     uuid = fields.Char(string='UUID', readonly=True)
     model = fields.Char(string='Model', readonly=True)
     method = fields.Char(string='Method', readonly=True)
+    ref = fields.Char(string='Reference', readonly=True)
     queue = fields.Char(string='Queue', readonly=True)
     state = fields.Selection(selection='_selection_states', readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
@@ -47,6 +48,7 @@ class CeleryJammedTaskReport(models.Model):
               t.uuid AS uuid,
               t.model AS model,
               t.method AS method,
+              t.ref AS ref,
               t.queue AS queue,
               t.state AS state,
               t.started_date AS started_date,
@@ -73,6 +75,7 @@ class CeleryJammedTaskReport(models.Model):
               t.uuid AS uuid,
               t.model AS model,
               t.method AS method,
+              t.ref AS ref,
               t.queue AS queue,
               t.state AS state,
               t.started_date AS started_date,
@@ -99,6 +102,7 @@ class CeleryJammedTaskReport(models.Model):
               t.uuid AS uuid,
               t.model AS model,
               t.method AS method,
+              t.ref AS ref,
               t.queue AS queue,
               t.state AS state,
               t.started_date AS started_date,
