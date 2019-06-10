@@ -77,11 +77,17 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             </page>
                             <page name="params" string="Parameters">
                                 <group>
-                                    <field name="retry"/>
-                                    <field name="max_retries"/>
-                                    <field name="countdown"/>
-                                    <field name="interval_start"/>
-                                    <field name="interval_step"/>
+                                    <group name="worker" string="Worker">
+                                        <field name="retry"/>
+                                        <field name="max_retries"/>
+                                        <field name="countdown"/>
+                                    </group>
+                                    <group name="retry_broker_connection" string="Retry Broker Connection">
+                                        <field name="interval_start"/>
+                                        <field name="interval_step"/>
+                                    </group>
+                                </group>
+                                <group name="kwargs" cols="4">
                                     <field name="kwargs" widget="char"/>
                                 </group>
                             </page>

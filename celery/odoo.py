@@ -37,7 +37,7 @@ def call_task(self, url, db, user_id, task_uuid, model, method, **kwargs):
     _kwargs = copy.deepcopy(kwargs)
     password = _kwargs.get('_password')
     del _kwargs['_password']
-    _celery_params = _kwargs.get('celery')
+    celery_params = _kwargs.get('celery', {})
 
     logger.info('{model} {method} - celery.task uuid: {uuid}'.format(
         model=model, method=method, uuid=task_uuid))
@@ -69,27 +69,16 @@ def call_task(self, url, db, user_id, task_uuid, model, method, **kwargs):
             msg = "%s, database: %s" % (result, db)
             raise TaskNotFoundInOdoo(msg)
         elif code in (STATE_RETRY, STATE_FAILURE):
-            if _celery_params:
-                retry = _celery_params.get('retry')
-                retry_policy = _celery_params.get('retry_policy')
-            else:
-                retry = False
-                retry_policy = False
+            retry = celery_params.get('retry')
             
-            if retry and retry_policy:
+            if retry:
                 msg = 'Retry task... Failure in Odoo {db} (task: {uuid}, model: {model}, method: {method}).'.format(
                     db=db, uuid=task_uuid, model=model, method=method)
                 logger.info(msg)
 
-                params = {}
-                if retry_policy['max_retries']:
-                    params['max_retries'] = retry_policy['max_retries']
-                if _celery_params.get('countdown'):
-                    params['countdown'] = _celery_params.get('countdown')
-                
                 # Notify the worker to retry.
-                logger.info('{task_name} retry params: {params}'.format(task_name=self.name, params=params))
-                raise self.retry(**params)
+                logger.info('{task_name} retry params: {params}'.format(task_name=self.name, params=celery_params))
+                raise self.retry(**celery_params)
             else:
                 msg = 'Exit task... Failure in Odoo {db} (task: {uuid}, model: {model}, method: {method})\n'\
                       '  => Check task log/info in Odoo'.format(db=db, uuid=task_uuid, model=model, method=method)

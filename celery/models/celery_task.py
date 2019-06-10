@@ -96,10 +96,10 @@ class CeleryTask(models.Model):
     retry = fields.Boolean(default=True)
     max_retries = fields.Integer() # Don't default here (Celery already does)
     interval_start = fields.Float(
-        help='Defines the number of seconds (float or integer) to wait between retries. '\
+        help='Defines the number of seconds (float or integer) to wait between Broker Connection retries. '\
         'Default is 0 (the first retry will be instantaneous).') # Don't default here (Celery already does)
     interval_step = fields.Float(
-        help='On each consecutive retry this number will be added to the retry delay (float or integer). '\
+        help='On each consecutive retry this number will be added to the Broker Connection retry delay (float or integer). '\
         'Default is 0.2.') # Don't default here (Celery already does)
     countdown = fields.Integer(help='ETA by seconds into the future. Also used in the retry.')
 
@@ -188,6 +188,7 @@ class CeleryTask(models.Model):
         if not celery_kwargs:
             kwargs['celery'] = {}
         elif celery_kwargs.get('retry') and not celery_kwargs.get('retry_policy'):
+            # The retry_policy defines the retry of the Broker Connection by Celery.
             retry_policy = {}
             if celery_kwargs.get('max_retries'):
                 retry_policy['max_retries'] = celery_kwargs.get('max_retries')
