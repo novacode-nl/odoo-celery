@@ -48,7 +48,7 @@
     </ul>
 
     <strong>Optional Celery options (is a kwarg)</strong>
-    <pre>
+    <pre style="background-color: #dedede;">
 celery = {
     'queue': 'high.priority',
     'countdown': 5,
@@ -58,17 +58,16 @@ celery = {
         'interval_start': 30
     }
 }</pre>
-
     <strong>Calling the task</strong>
-    <pre>self.env["celery.task"].call_task("celery.example", "schedule_import", celery=celery)</pre>
+    <pre style="background-color: #dedede;">self.env["celery.task"].call_task("celery.example", "schedule_import", celery=celery)</pre>
     
     <h4>Celery Options</h4>
-    <table>
+    <table class="table table-bordered">
       <thead>
         <tr>
           <th>Option</th>
           <th>Description</th>
-          <th>Celery Documentation</th>            
+          <th>Celery Documentation</th>
         </tr>
       </thead>
       <tbody>
@@ -80,7 +79,7 @@ celery = {
         <tr>
           <td>countdown</td>
           <td>The countdown is a shortcut to set ETA by seconds into the future <strong>*</strong></td>
-          <td><a href="http://docs.celeryproject.org/en/latest/userguide/calling.html#eta-and-countdown">ETA and Countdown</a><td>
+          <td><a href="http://docs.celeryproject.org/en/latest/userguide/calling.html#eta-and-countdown">ETA and Countdown</a></td>
         </tr>
         <tr>
           <td>retry</td>
@@ -94,6 +93,7 @@ celery = {
               <li>Multiply the countdown (option) by number of retry requests</li>
               <li>Add seconds to the countdown (option)</li>
             </ul>
+          </td>
           <td>This is a custom parameter which affects the Celery <em>countdown</em> option.</td>
         </tr>
         <tr>
@@ -158,7 +158,7 @@ celery = {
       <p>Check the Celery Documentation for more ways to start and manage the server/process.</p>
       <p>The Celery (Odoo) worker => Python file <strong>odoo.py</strong>, which is located directly under the "celery" module directory.</p>
       <p><strong>Start on command line, whereas "odoo" references to the Python file:</strong></p>
-      <pre># celery -A odoo worker --loglevel=info</pre>
+      <pre style="background-color: #dedede;"># celery -A odoo worker --loglevel=info</pre>
     </div>
   </div>
 </section>
