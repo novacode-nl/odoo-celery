@@ -72,32 +72,37 @@ celery = {
       </thead>
       <tbody>
         <tr>
-          <td>queue</td>
-          <td>Name of the Celery/worker queue, the task shall be routed to <strong>*</strong></td>
-          <td><a href="http://docs.celeryproject.org/en/latest/userguide/routing.html">Routing Tasks</a><td>
+          <td><code>queue</code></td>
+          <td>Name of the Celery/worker queue, the task shall be routed to.</td>
+          <td><a href="http://docs.celeryproject.org/en/latest/userguide/routing.html">Routing Tasks</a></td>
         </tr>
         <tr>
-          <td>countdown</td>
-          <td>The countdown is a shortcut to set ETA by seconds into the future <strong>*</strong></td>
+          <td><code>countdown</code></td>
+          <td>The countdown is a shortcut to set ETA by seconds into the future.</td>
           <td><a href="http://docs.celeryproject.org/en/latest/userguide/calling.html#eta-and-countdown">ETA and Countdown</a></td>
         </tr>
         <tr>
-          <td>retry</td>
+          <td><code>retry</code></td>
           <td>Set to <code>True</code> to enable the retry of sending task messages.</td>
           <td><a href="http://docs.celeryproject.org/en/latest/userguide/calling.html#message-sending-retry">Message Sending Retry</a></td>
         </tr>
         <tr>
-          <td>retry_countdown_setting</td>
+          <td><code>retry_countdown_setting</code></td>
           <td>Specify whether and how to increase the retry countdown by:
             <ul>
               <li>Multiply the countdown (option) by number of retry requests</li>
-              <li>Add seconds to the countdown (option)</li>
+              <li>Add seconds to the <code>countdown</code>.</li>
             </ul>
           </td>
-          <td>This is a custom parameter which affects the Celery <em>countdown</em> option.</td>
+          <td>This is a custom option which affects the Celery <code>countdown</code> option.</td>
         </tr>
         <tr>
-          <td>retry_policy</td>
+          <td><code>retry_countdown_add_seconds</code></td>
+          <td>Specify the seonds to add to the retry countdown</td>
+          <td>This is a custom option which affects the Celery <code>countdown</code> option.</td>
+        </tr>
+        <tr>
+          <td><code>retry_policy</code></td>
           <td>Options when retrying publishing a task message in the case of connection loss or other connection errors.</td>
           <td><a href="http://docs.celeryproject.org/en/latest/userguide/calling.html#message-sending-retry">Message Sending Retry</a></td>
         </tr>
