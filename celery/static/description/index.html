@@ -160,10 +160,14 @@ celery = {
     </div>
     <div class="oe_row_img oe_centered">
       <h4 class="oe_mb16 text-center">Start the Celery (Odoo) worker server</h4>
-      <p>Check the Celery Documentation for more ways to start and manage the server/process.</p>
-      <p>The Celery (Odoo) worker => Python file <strong>odoo.py</strong>, which is located directly under the "celery" module directory.</p>
-      <p><strong>Start on command line, whereas "odoo" references to the Python file:</strong></p>
+      <p>Check the Celery Documentation for more ways to start and manage the server/proces. E.g. by <strong>Supervisor</strong></p>
+      <p>The Celery (Odoo) worker => Python file <code>odoo.py</code>, which is located directly under the "celery" module directory.</p>
+
+      <p><strong>Start the worker (default/celery queue) on command line, whereas "odoo" references to the Python file:</strong></p>
       <pre style="background-color: #dedede;"># celery -A odoo worker --loglevel=info</pre>
+
+      <p><strong>Start a worker as a named queue:</strong></p>
+      <pre style="background-color: #dedede;"># celery -A odoo worker --loglevel=info -Q high.priority -n high.priority</pre>
     </div>
   </div>
 </section>
