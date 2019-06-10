@@ -9,20 +9,16 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                   web_icon="celery,static/description/icon.png"/>
 
         <!-- Tasks -->
-        <menuitem id="menu_celery_task_root"
-                  name="Tasks"
-                  parent="menu_celery_root"
-                  sequence="10"/>
         <menuitem id="menu_celery_task"
                   name="Tasks"
-                  parent="menu_celery_task_root"
+                  parent="menu_celery_root"
                   action="action_celery_task"
                   sequence="10"/>
         <menuitem id="menu_celery_jammed_task_report"
                   name="Jammed Tasks"
-                  parent="celery.menu_celery_task_root"
+                  parent="celery.menu_celery_root"
                   action="action_celery_jammed_task_report"
-                  sequence="100"/>
+                  sequence="50"/>
 
         <!-- Settings -->
         <menuitem id="menu_celery_setting_root"
