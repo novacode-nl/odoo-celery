@@ -70,6 +70,18 @@ def call_task(self, url, db, user_id, task_uuid, model, method, **kwargs):
             raise TaskNotFoundInOdoo(msg)
         elif code in (STATE_RETRY, STATE_FAILURE):
             retry = celery_params.get('retry')
+            countdown = celery_params.get('countdown', 1)
+            retry_countdown_setting = celery_params.get('retry_countdown_setting')
+
+            # Increase the countdown either by:
+            # - multiply with number of retry requests
+            # - Add seconds.
+            if retry_countdown_setting:
+                if retry_countdown_setting == 'MULTIPLY_RETRIES':
+                    countdown = countdown * self.request.retries
+                elif retry_countdown_setting == 'ADD_SECONDS':
+                    countdown = countdown + celery_params.get('retry_countdown_add_seconds')
+            celery_params['countdown'] = countdown
             
             if retry:
                 msg = 'Retry task... Failure in Odoo {db} (task: {uuid}, model: {model}, method: {method}).'.format(

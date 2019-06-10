@@ -42,7 +42,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                         <field name="res_model" invisible="1"/>
                         <group>
                             <field name="uuid"/>
-                             <field name="ref" attrs="{'invisible': [('ref', '=', False)]}"/>
+                            <field name="ref" attrs="{'invisible': [('ref', '=', False)]}"/>
                         </group>
                         <group>
                             <group>
@@ -77,10 +77,19 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             </page>
                             <page name="params" string="Parameters">
                                 <group>
-                                    <group name="worker" string="Worker">
+                                    <group name="celery_worker" string="Celery worker">
                                         <field name="retry"/>
                                         <field name="max_retries"/>
                                         <field name="countdown"/>
+                                    </group>
+                                    <group name="retry_countdown_settings"
+                                           string="Retry Countdown settings"
+                                           attrs="{'invisible': [('retry', '=', False), ('countdown', '=', False)]}">
+                                        <field name="retry_countdown_setting" string="Retry Countdown"/>
+                                        <field
+                                            name="retry_countdown_add_seconds"
+                                            string="Add Countdown seconds"
+                                            attrs="{'invisible': ['|', ('retry', '=', False), ('retry_countdown_setting', '!=', 'ADD_SECONDS')]}"/>
                                     </group>
                                     <group name="retry_broker_connection" string="Retry Broker Connection">
                                         <field name="interval_start"/>

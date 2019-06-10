@@ -5,6 +5,7 @@ import logging
 import time
 
 from odoo import api, fields, models, _
+from odoo.addons.celery.models.celery_task import RETRY_COUNTDOWN_MULTIPLY_RETRIES
 
 _logger = logging.getLogger(__name__)
 
@@ -30,7 +31,10 @@ class CeleryExample(models.Model):
     @api.multi
     def action_task_with_error(self):
         celery = {
-            'countdown': 8, 'retry': True, 'max_retries': 4,
+            'countdown': 10,
+            'retry': True,
+            'max_retries': 4,
+            'retry_countdown_setting': RETRY_COUNTDOWN_MULTIPLY_RETRIES,
             'retry_policy': {'interval_start': 2}
         }
         celery_task_vals = {

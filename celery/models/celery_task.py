@@ -45,6 +45,14 @@ CELERY_PARAMS = [
     'queue', 'retry', 'max_retries', 'interval_start', 'interval_step',
     'countdown']
 
+RETRY_COUNTDOWN_MULTIPLY_RETRIES = 'MULTIPLY_RETRIES'
+RETRY_COUNTDOWN_ADD_SECONDS = 'ADD_SECONDS'
+RETRY_COUNTDOWN_SETTINGS = [
+    (RETRY_COUNTDOWN_MULTIPLY_RETRIES, 'Multiply retry countdown with request retries'),
+    (RETRY_COUNTDOWN_ADD_SECONDS, 'Add seconds to retry countdown'),
+]
+
+
 def _get_celery_user_config():
     user = (os.environ.get('ODOO_CELERY_USER') or config.misc.get("celery", {}).get('user'))
     password = (os.environ.get('ODOO_CELERY_PASSWORD') or config.misc.get("celery", {}).get('password'))
@@ -102,9 +110,15 @@ class CeleryTask(models.Model):
         help='On each consecutive retry this number will be added to the Broker Connection retry delay (float or integer). '\
         'Default is 0.2.') # Don't default here (Celery already does)
     countdown = fields.Integer(help='ETA by seconds into the future. Also used in the retry.')
+    retry_countdown_setting = fields.Selection(
+        selection='_selection_retry_countdown_settings', string='Retry Countdown Setting')
+    retry_countdown_add_seconds = fields.Integer(string='Retry Countdown add seconds')
 
     def _selection_states(self):
         return STATES
+
+    def _selection_retry_countdown_settings(self):
+        return RETRY_COUNTDOWN_SETTINGS
 
     @api.multi
     def write(self, vals):

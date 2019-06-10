@@ -40,25 +40,70 @@
   <div class="oe_row oe_spaced">
     <h2 class="oe_slogan" style="color:#875A7B;">Put a <em>model-method</em> on the Celery Task Queue</h2>
     <h3 class="oe_slogan">Just Python code to call from an Odoo model</h3>
-    <div class="oe_row_img oe_centered">
-      <strong>Optional Celery parameters:</strong>
-      <pre>
+    <h4>Example</h4>
+    <strong>Model and method</strong>
+    <ul>
+      <li><strong>model</strong>: "celery.example"</li>
+      <li><strong>method</strong>: "schedule_import"</li>
+    </ul>
+
+    <strong>Optional Celery options (is a kwarg)</strong>
+    <pre>
 celery = {
     'queue': 'high.priority',
-    'countdown': 2,
+    'countdown': 5,
     'retry': True,
+    'retry_countdown_setting': 'MULTIPLY_RETRIES',
     'retry_policy': {
-       'max_retries': 5,
-       'interval_start': 2
+        'interval_start': 30
     }
 }</pre>
-      <strong>Put a model-method as a task on the queue:</strong>
-      <ul>
-        <li><strong>model</strong>: "celery.example"</li>
-        <li><strong>method</strong>: "schedule_import"</li>
-      </ul>
-      <pre>self.env["celery.task"].call_task("celery.example", "schedule_import", celery=celery)</pre>
-    </div>
+
+    <strong>Calling the task</strong>
+    <pre>self.env["celery.task"].call_task("celery.example", "schedule_import", celery=celery)</pre>
+    
+    <h4>Celery Options</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>Option</th>
+          <th>Description</th>
+          <th>Celery Documentation</th>            
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>queue</td>
+          <td>Name of the Celery/worker queue, the task shall be routed to <strong>*</strong></td>
+          <td><a href="http://docs.celeryproject.org/en/latest/userguide/routing.html">Routing Tasks</a><td>
+        </tr>
+        <tr>
+          <td>countdown</td>
+          <td>The countdown is a shortcut to set ETA by seconds into the future <strong>*</strong></td>
+          <td><a href="http://docs.celeryproject.org/en/latest/userguide/calling.html#eta-and-countdown">ETA and Countdown</a><td>
+        </tr>
+        <tr>
+          <td>retry</td>
+          <td>Set to <code>True</code> to enable the retry of sending task messages.</td>
+          <td><a href="http://docs.celeryproject.org/en/latest/userguide/calling.html#message-sending-retry">Message Sending Retry</a></td>
+        </tr>
+        <tr>
+          <td>retry_countdown_setting</td>
+          <td>Specify whether and how to increase the retry countdown by:
+            <ul>
+              <li>Multiply the countdown (option) by number of retry requests</li>
+              <li>Add seconds to the countdown (option)</li>
+            </ul>
+          <td>This is a custom parameter which affects the Celery <em>countdown</em> option.</td>
+        </tr>
+        <tr>
+          <td>retry_policy</td>
+          <td>Options when retrying publishing a task message in the case of connection loss or other connection errors.</td>
+          <td><a href="http://docs.celeryproject.org/en/latest/userguide/calling.html#message-sending-retry">Message Sending Retry</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section class="oe_container oe_dark">
@@ -139,6 +184,14 @@ celery = {
 <section class="oe_container">
   <div class="oe_row oe_spaced">
     <h2 class="oe_slogan" style="color:#875A7B;">Changelog</h2>
+    <h4 class="oe_mb16">0.8</h4>
+    <ul>
+      <li>Fix: Task retry countdown/interval ignored. For more info see <a href="https://github.com/novacode-nl/odoo-celery/issues/14" target="_blank">GitHub issue</a></li>
+      <li>Add task retry countdown settings (multiply by number of retry requests - OR - add seconds).</li>      
+      <li>Jammed tasks: (1) Add/show field <code>reference</code> (2) search-view with filters and grouping.</li>
+      <li>Task settings: track changes of fields <code>model, method, handle_jammed</code></li>
+      <li>Task form-view: disable create/copy</li>
+    </ul>
     <h4 class="oe_mb16">0.7</h4>
     <ul>
       <li>Task <em>Reference</em>, which serves:
