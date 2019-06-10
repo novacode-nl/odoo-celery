@@ -31,7 +31,7 @@ class CeleryExample(models.Model):
     def action_task_with_error(self):
         celery = {
             'countdown': 8, 'retry': True, 'max_retries': 4,
-            'retry_policy': {'max_retries': 10, 'interval_start': 2}
+            'retry_policy': {'interval_start': 2}
         }
         celery_task_vals = {
             'ref': 'celery.example.task_with_error'
