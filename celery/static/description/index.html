@@ -42,7 +42,7 @@
     <h3 class="oe_slogan">Just Python code to call from an Odoo model</h3>
   </div>
   <div class="oe_row oe_spaced">
-    <h4>EXAMPLE</h4>
+    <h4 style="border-bottom: 1px solid;">Example</h4>
     <p class="mt16 mb16"><strong>Model and method:</strong></p>
     <ul>
       <li><strong>model</strong>: "celery.example"</li>
@@ -65,11 +65,9 @@ celery = {
     <p class="mt16 mb16"><strong>Calling the task:</strong></p>
     <pre style="background-color: #dedede;">self.env["celery.task"].call_task("celery.example", "schedule_import", celery=celery)</pre>
   </div>
-</section>
 
-<section class="oe_container oe_dark">
   <div class="oe_row oe_spaced">
-    <h4>Celery Options</h4>
+    <h4 style="border-bottom: 1px solid;">Celery Options</h4>
     <p>All Celery options are optional (not required).</p>
     <table class="table table-bordered">
       <thead>
