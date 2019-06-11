@@ -212,11 +212,11 @@ celery = {
     <h2 class="oe_slogan" style="color:#875A7B;">Changelog</h2>
     <h4 class="oe_mb16">0.8</h4>
     <ul>
-      <li>Fix: Task retry countdown/interval ignored. For more info see <a href="https://github.com/novacode-nl/odoo-celery/issues/14" target="_blank">GitHub issue</a></li>
-      <li>Add task retry countdown settings (multiply by number of retry requests - OR - add seconds).</li>      
-      <li>Jammed tasks: (1) Add/show field <code>reference</code> (2) search-view with filters and grouping.</li>
-      <li>Task settings: track changes of fields <code>model, method, handle_jammed</code></li>
-      <li>Task form-view: disable create/copy</li>
+      <li>Fix task retry countdown/interval ignored. For more info see <a href="https://github.com/novacode-nl/odoo-celery/issues/14" target="_blank">GitHub issue</a></li>
+      <li>Add task retry countdown settings, to increase countdown during retries ('ADD_SECONDS', 'MUL_RETRIES', 'MUL_RETRIES_SECONDS').</li>      
+      <li>Search view of jammed tasks: (1) Add/show field <code>reference</code> (2) search-view with filters and grouping.</li>
+      <li>Track task changes of fields <code>model, method, handle_jammed</code></li>
+      <li>Disable create/copy in the task form-view.</li>
     </ul>
     <h4 class="oe_mb16">0.7</h4>
     <ul>
