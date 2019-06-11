@@ -47,13 +47,13 @@ CELERY_PARAMS = [
     'retry_countdown_multiply_retries_seconds']
 
 RETRY_COUNTDOWN_ADD_SECONDS = 'ADD_SECONDS'
-RETRY_COUNTDOWN_MULTIPLY_RETRIES = 'MULTIPLY_RETRIES'
-RETRY_COUNTDOWN_MULTIPLY_RETRIES_SECCONDS = 'MULTIPLY_RETRIES_SECONDS'
+RETRY_COUNTDOWN_MUL_RETRIES = 'MUL_RETRIES'
+RETRY_COUNTDOWN_MUL_RETRIES_SECCONDS = 'MUL_RETRIES_SECONDS'
 
 RETRY_COUNTDOWN_SETTINGS = [
     (RETRY_COUNTDOWN_ADD_SECONDS, 'Add seconds to retry countdown'),
-    (RETRY_COUNTDOWN_MULTIPLY_RETRIES, 'Multiply retry countdown * request retries'),
-    (RETRY_COUNTDOWN_MULTIPLY_RETRIES_SECCONDS, 'Multiply retry countdown: retries * seconds'),
+    (RETRY_COUNTDOWN_MUL_RETRIES, 'Multiply retry countdown * request retries'),
+    (RETRY_COUNTDOWN_MUL_RETRIES_SECCONDS, 'Multiply retry countdown: retries * seconds'),
 ]
 
 

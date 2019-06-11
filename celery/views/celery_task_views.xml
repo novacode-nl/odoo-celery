@@ -93,7 +93,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                         <field
                                             name="retry_countdown_multiply_retries_seconds"
                                             string="Seconds (* retries)"
-                                            attrs="{'invisible': ['|', ('retry', '=', False), ('retry_countdown_setting', '!=', 'MULTIPLY_RETRIES_SECONDS')]}"/>
+                                            attrs="{'invisible': ['|', ('retry', '=', False), ('retry_countdown_setting', '!=', 'MUL_RETRIES_SECONDS')]}"/>
                                     </group>
                                     <group name="retry_broker_connection" string="Retry Broker Connection">
                                         <field name="interval_start"/>

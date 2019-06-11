@@ -56,7 +56,7 @@ celery = {
     'queue': 'high.priority',
     'countdown': 5,
     'retry': True,
-    'retry_countdown_setting': 'MULTIPLY_RETRIES_SECONDS',
+    'retry_countdown_setting': 'MUL_RETRIES_SECONDS',
     'retry_countdown_multiply_retries_seconds': 60,
     'retry_policy': {
         'interval_start': 30
@@ -99,9 +99,9 @@ celery = {
             <ul>
               <li>ADD_SECONDS:<br/>
                 <code>countdown = countdown + retry_countdown_add_seconds</code></li>
-              <li>MULTIPLY_RETRIES:<br/>
+              <li>MUL_RETRIES:<br/>
                 <code>countdown = countdown * request.retries</code></li>
-              <li>MULTIPLY_RETRIES_SECONDS:<br/>
+              <li>MUL_RETRIES_SECONDS:<br/>
                 <code>countdown = request.retries * retry_countdown_multiply_retries_seconds</code></li>
             </ul>
           </td>

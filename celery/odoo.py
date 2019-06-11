@@ -82,9 +82,9 @@ def call_task(self, url, db, user_id, task_uuid, model, method, **kwargs):
             if retry and retry_countdown_setting:
                 if retry_countdown_setting == 'ADD_SECONDS':
                     countdown = countdown + retry_countdown_add_seconds
-                elif retry_countdown_setting == 'MULTIPLY_RETRIES':
+                elif retry_countdown_setting == 'MUL_RETRIES':
                     countdown = countdown * self.request.retries
-                elif retry_countdown_setting == 'MULTIPLY_RETRIES_SECONDS' and retry_countdown_multiply_retries_seconds > 0:
+                elif retry_countdown_setting == 'MUL_RETRIES_SECONDS' and retry_countdown_multiply_retries_seconds > 0:
                     countdown = self.request.retries * retry_countdown_multiply_retries_seconds
             celery_params['countdown'] = countdown
             
