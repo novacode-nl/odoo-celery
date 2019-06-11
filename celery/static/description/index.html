@@ -36,32 +36,39 @@
     </div>
 </section>
 
-<section class="oe_container">
+<section class="oe_container oe_dark">
   <div class="oe_row oe_spaced">
     <h2 class="oe_slogan" style="color:#875A7B;">Put a <em>model-method</em> on the Celery Task Queue</h2>
     <h3 class="oe_slogan">Just Python code to call from an Odoo model</h3>
-    <h4>Example</h4>
-    <strong>Model and method</strong>
+    <h4>EXAMPLE</h4>
+    <p class="mt16 mb16"><strong>Model and method:</strong></p>
     <ul>
       <li><strong>model</strong>: "celery.example"</li>
       <li><strong>method</strong>: "schedule_import"</li>
     </ul>
 
-    <strong>Optional Celery options (is a kwarg)</strong>
+    <p class="mt16 mb16"><strong>Celery Options:</strong></p>
+    <p>Shall be provided to <code>kwargs</code> of the <code>call_task</code> method</p>
     <pre style="background-color: #dedede;">
 celery = {
     'queue': 'high.priority',
     'countdown': 5,
     'retry': True,
-    'retry_countdown_setting': 'MULTIPLY_RETRIES',
+    'retry_countdown_setting': 'MULTIPLY_RETRIES_SECONDS',
+    'retry_countdown_multiply_retries_seconds': 60,
     'retry_policy': {
         'interval_start': 30
     }
 }</pre>
-    <strong>Calling the task</strong>
+    <p class="mt16 mb16"><strong>Calling the task:</strong></p>
     <pre style="background-color: #dedede;">self.env["celery.task"].call_task("celery.example", "schedule_import", celery=celery)</pre>
-    
+  </div>
+</section>
+
+<section class="oe_container">
+  <div class="oe_row oe_spaced">
     <h4>Celery Options</h4>
+    <p>All Celery options are optional (not required).</p>
     <table class="table table-bordered">
       <thead>
         <tr>
@@ -88,17 +95,27 @@ celery = {
         </tr>
         <tr>
           <td><code>retry_countdown_setting</code></td>
-          <td>Specify whether and how to increase the retry countdown by:
+          <td>Specify whether and how to increase the <em>Retry Countdown</em> by:
             <ul>
-              <li>Multiply the countdown (option) by number of retry requests</li>
-              <li>Add seconds to the <code>countdown</code>.</li>
+              <li>ADD_SECONDS:<br/>
+                <code>countdown = countdown + retry_countdown_add_seconds</code></li>
+              <li>MULTIPLY_RETRIES:<br/>
+                <code>countdown = countdown * request.retries</code></li>
+              <li>MULTIPLY_RETRIES_SECONDS:<br/>
+                <code>countdown = request.retries * retry_countdown_multiply_retries_seconds</code></li>
             </ul>
           </td>
           <td>This is a custom option which affects the Celery <code>countdown</code> option.</td>
         </tr>
         <tr>
           <td><code>retry_countdown_add_seconds</code></td>
-          <td>Specify the seonds to add to the retry countdown</td>
+          <td>Specify the seconds (integer field) to add to the <em>Retry Countdown</em>.</td>
+          <td>This is a custom option which affects the Celery <code>countdown</code> option.</td>
+        </tr>
+        <tr>
+        <tr>
+          <td><code>retry_countdown_multiply_retries_seconds</code></td>
+          <td>Specify the seconds (integer field) to multiply with request retries, which becomes the <em>Retry Countdown</em>.</td>
           <td>This is a custom option which affects the Celery <code>countdown</code> option.</td>
         </tr>
         <tr>

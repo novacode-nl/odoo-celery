@@ -43,13 +43,17 @@ STATES_TO_REQUEUE = [STATE_PENDING, STATE_RETRY, STATE_JAMMED, STATE_FAILURE]
 
 CELERY_PARAMS = [
     'queue', 'retry', 'max_retries', 'interval_start', 'interval_step',
-    'countdown']
+    'countdown', 'retry_countdown_setting', 'retry_countdown_add_seconds',
+    'retry_countdown_multiply_retries_seconds']
 
-RETRY_COUNTDOWN_MULTIPLY_RETRIES = 'MULTIPLY_RETRIES'
 RETRY_COUNTDOWN_ADD_SECONDS = 'ADD_SECONDS'
+RETRY_COUNTDOWN_MULTIPLY_RETRIES = 'MULTIPLY_RETRIES'
+RETRY_COUNTDOWN_MULTIPLY_RETRIES_SECCONDS = 'MULTIPLY_RETRIES_SECONDS'
+
 RETRY_COUNTDOWN_SETTINGS = [
-    (RETRY_COUNTDOWN_MULTIPLY_RETRIES, 'Multiply retry countdown with request retries'),
     (RETRY_COUNTDOWN_ADD_SECONDS, 'Add seconds to retry countdown'),
+    (RETRY_COUNTDOWN_MULTIPLY_RETRIES, 'Multiply retry countdown * request retries'),
+    (RETRY_COUNTDOWN_MULTIPLY_RETRIES_SECCONDS, 'Multiply retry countdown: retries * seconds'),
 ]
 
 
@@ -113,6 +117,7 @@ class CeleryTask(models.Model):
     retry_countdown_setting = fields.Selection(
         selection='_selection_retry_countdown_settings', string='Retry Countdown Setting')
     retry_countdown_add_seconds = fields.Integer(string='Retry Countdown add seconds')
+    retry_countdown_multiply_retries_seconds = fields.Integer(string='Retry Countdown multiply retries seconds')
 
     def _selection_states(self):
         return STATES

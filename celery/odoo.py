@@ -72,15 +72,20 @@ def call_task(self, url, db, user_id, task_uuid, model, method, **kwargs):
             retry = celery_params.get('retry')
             countdown = celery_params.get('countdown', 1)
             retry_countdown_setting = celery_params.get('retry_countdown_setting')
+            retry_countdown_add_seconds = celery_params.get('retry_countdown_add_seconds', 0)
+            retry_countdown_multiply_retries_seconds = celery_params.get('retry_countdown_multiply_retries_seconds', 0)
 
-            # Increase the countdown either by:
-            # - multiply with number of retry requests
-            # - Add seconds.
-            if retry_countdown_setting:
-                if retry_countdown_setting == 'MULTIPLY_RETRIES':
+            # (Optionally) increase the countdown either by:
+            # - add seconds
+            # - countdown * retry requests
+            # - retry requests * a given seconds
+            if retry and retry_countdown_setting:
+                if retry_countdown_setting == 'ADD_SECONDS':
+                    countdown = countdown + retry_countdown_add_seconds
+                elif retry_countdown_setting == 'MULTIPLY_RETRIES':
                     countdown = countdown * self.request.retries
-                elif retry_countdown_setting == 'ADD_SECONDS':
-                    countdown = countdown + celery_params.get('retry_countdown_add_seconds')
+                elif retry_countdown_setting == 'MULTIPLY_RETRIES_SECONDS' and retry_countdown_multiply_retries_seconds > 0:
+                    countdown = self.request.retries * retry_countdown_multiply_retries_seconds
             celery_params['countdown'] = countdown
             
             if retry:
