@@ -20,6 +20,10 @@ STATE_RETRY = 'RETRY'
 STATE_FAILURE = 'FAILURE'
 TASK_NOT_FOUND = 'NOT_FOUND'
 
+RETRY_COUNTDOWN_ADD_SECONDS = 'ADD_SECS'
+RETRY_COUNTDOWN_MULTIPLY_RETRIES = 'MUL_RETR'
+RETRY_COUNTDOWN_MULTIPLY_RETRIES_SECCONDS = 'MUL_RETR_SECS'
+
 
 class TaskNotFoundInOdoo(TaskError):
     """The task doesn't exist (anymore) in Odoo (Celery Task model)."""
@@ -80,11 +84,12 @@ def call_task(self, url, db, user_id, task_uuid, model, method, **kwargs):
             # - countdown * retry requests
             # - retry requests * a given seconds
             if retry and retry_countdown_setting:
-                if retry_countdown_setting == 'ADD_SECS':
+                if retry_countdown_setting == RETRY_COUNTDOWN_ADD_SECONDS:
                     countdown = countdown + retry_countdown_add_seconds
-                elif retry_countdown_setting == 'MUL_RETR':
+                elif retry_countdown_setting == RETRY_COUNTDOWN_MULTIPLY_RETRIES:
                     countdown = countdown * self.request.retries
-                elif retry_countdown_setting == 'MUL_RETR_SECS' and retry_countdown_multiply_retries_seconds > 0:
+                elif retry_countdown_setting == RETRY_COUNTDOWN_MULTIPLY_RETRIES_SECCONDS \
+                     and retry_countdown_multiply_retries_seconds > 0:
                     countdown = self.request.retries * retry_countdown_multiply_retries_seconds
             celery_params['countdown'] = countdown
             
