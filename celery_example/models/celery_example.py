@@ -31,16 +31,17 @@ class CeleryExample(models.Model):
     @api.multi
     def action_task_with_error(self):
         celery = {
-            'countdown': 10,
+            'countdown': 2,
             'retry': True,
             'max_retries': 4,
-            'retry_countdown_setting': RETRY_COUNTDOWN_MULTIPLY_RETRIES,
+            'retry_countdown_setting': 'MUL_RETR_SECS',
+            'retry_countdown_multiply_retries_seconds': 5,
             'retry_policy': {'interval_start': 2}
         }
         celery_task_vals = {
             'ref': 'celery.example.task_with_error'
         }
-        self.env["celery.task"].call_task("celery.example", "task_with_error", example_id=self.id, celery_task_vals=celery_task_vals, celery=celery)
+        self.env["celery.task"].call_task("celery.example", "task_with_error", example_id=self.id, celery=celery)
 
     @api.multi
     def action_task_queue_default(self):
