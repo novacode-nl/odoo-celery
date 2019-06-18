@@ -39,6 +39,10 @@ def call_task(self, url, db, user_id, task_uuid, model, method, **kwargs):
     odoo = xmlrpc_client.ServerProxy('{}/xmlrpc/2/object'.format(url))
     args = [task_uuid, model, method]
     _kwargs = copy.deepcopy(kwargs)
+
+    # Needed in the retry (call), to hide _password.
+    _kwargsrepr = copy.deepcopy(kwargs)
+
     password = _kwargs.get('_password')
     del _kwargs['_password']
     celery_params = _kwargs.get('celery', {})
@@ -100,7 +104,9 @@ def call_task(self, url, db, user_id, task_uuid, model, method, **kwargs):
 
                 # Notify the worker to retry.
                 logger.info('{task_name} retry params: {params}'.format(task_name=self.name, params=celery_params))
-                raise self.retry(**celery_params)
+                _kwargsrepr['_password'] = '*****'
+                _kwargsrepr = repr(_kwargsrepr)
+                raise self.retry(kwargsrepr=_kwargsrepr, **celery_params)
             else:
                 msg = 'Exit task... Failure in Odoo {db} (task: {uuid}, model: {model}, method: {method})\n'\
                       '  => Check task log/info in Odoo'.format(db=db, uuid=task_uuid, model=model, method=method)
