@@ -233,7 +233,13 @@ class CeleryTask(models.Model):
         which run/process task. Therefor add "sudo = True" in the odoo.conf (see: example.odoo.conf).
         """
 
-        logger.info('CELERY rpc_run_task uuid {uuid}'.format(uuid=task_uuid))
+        task_queue = kwargs.get('celery', False) and kwargs.get('celery').get('queue', '') or 'celery'
+        task_ref = kwargs.get('celery_task_vals', False) and kwargs.get('celery_task_vals').get('ref', '') or ''
+        logger.info('CELERY rpc_run_task uuid:{uuid} - model:{model} - method:{method} - reference:{ref} - queue:{queue}'.format(uuid=task_uuid, 
+                                                                                                                                 model=model, 
+                                                                                                                                 method=method,
+                                                                                                                                 ref=task_ref,
+                                                                                                                                 queue=task_queue))
         
         exist = self.search_count([('uuid', '=', task_uuid)])
         if exist == 0:
@@ -296,10 +302,20 @@ class CeleryTask(models.Model):
                 exc_info = traceback.format_exc()
                 if task.retry:
                     state = STATE_RETRY
-                    logger.warning('Retry... exception (see task form) from rpc_run_task {uuid}: {exc}.'.format(uuid=task_uuid, exc=e))
+                    logger.warning('Retry... exception (see task form) from rpc_run_task {uuid} (model:{model} - method:{method} - reference:{ref} - queue:{queue}): {exc}.'.format(uuid=task_uuid,
+                                                                                                                                                                                    model=model, 
+                                                                                                                                                                                    method=method,
+                                                                                                                                                                                    ref=task_ref,
+                                                                                                                                                                                    queue=task_queue,
+                                                                                                                                                                                    exc=e))
                 else:
                     state = STATE_FAILURE
-                    logger.warning('Failure... exception (see task form) from rpc_run_task {uuid}: {exc}.'.format(uuid=task_uuid, exc=e))
+                    logger.warning('Failure... exception (see task form) from rpc_run_task {uuid} (model:{model} - method:{method} - reference:{ref} - queue:{queue}): {exc}.'.format(uuid=task_uuid,
+                                                                                                                                                                                      model=model, 
+                                                                                                                                                                                      method=method,
+                                                                                                                                                                                      ref=task_ref,
+                                                                                                                                                                                      queue=task_queue,
+                                                                                                                                                                                      exc=e))
                 vals.update({'state': state, 'state_date': fields.Datetime.now(), 'exc_info': exc_info})
                 logger.debug('Exception rpc_run_task: {exc_info}'.format(uuid=task_uuid, exc_info=exc_info))
                 cr.rollback()
