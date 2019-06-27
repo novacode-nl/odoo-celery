@@ -235,7 +235,7 @@ class CeleryTask(models.Model):
 
         task_queue = kwargs.get('celery', False) and kwargs.get('celery').get('queue', '') or 'celery'
         task_ref = kwargs.get('celery_task_vals', False) and kwargs.get('celery_task_vals').get('ref', '') or ''
-        logger.info('CELERY rpc_run_task uuid:{uuid} - model: {model} - method: {method} - reference: {ref} - queue: {queue}'.format(
+        logger.info('CELERY rpc_run_task uuid:{uuid} - model: {model} - method: {method} - ref: {ref} - queue: {queue}'.format(
             uuid=task_uuid,
             model=model,
             method=method,
@@ -303,7 +303,7 @@ class CeleryTask(models.Model):
                 exc_info = traceback.format_exc()
                 if task.retry:
                     state = STATE_RETRY
-                    logger.warning('Retry... exception (see task form) from rpc_run_task {uuid} (model: {model} - method: {method} - reference: {ref} - queue: {queue}): {exc}.'.format(
+                    logger.warning('Retry... exception (see task form) from rpc_run_task {uuid} (model: {model} - method: {method} - ref: {ref} - queue: {queue}): {exc}.'.format(
                         uuid=task_uuid,
                         model=model,
                         method=method,
@@ -312,7 +312,7 @@ class CeleryTask(models.Model):
                         exc=e))
                 else:
                     state = STATE_FAILURE
-                    logger.warning('Failure... exception (see task form) from rpc_run_task {uuid} (model: {model} - method: {method} - reference: {ref} - queue: {queue}): {exc}.'.format(
+                    logger.warning('Failure... exception (see task form) from rpc_run_task {uuid} (model: {model} - method: {method} - ref: {ref} - queue: {queue}): {exc}.'.format(
                         uuid=task_uuid,
                         model=model,
                         method=method,
