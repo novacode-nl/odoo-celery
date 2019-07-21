@@ -56,7 +56,7 @@ celery = {
     'queue': 'high.priority',
     'countdown': 5,
     'retry': True,
-    'retry_countdown_setting': 'MUL_RETR_SECS',
+    'retry_countdown_setting': 'MUL_RETRY_SECS',
     'retry_countdown_multiply_retries_seconds': 60,
     'retry_policy': {
         'interval_start': 30
@@ -99,9 +99,9 @@ celery = {
             <ul>
               <li>ADD_SECS:<br/>
                 <code>countdown = countdown + retry_countdown_add_seconds</code></li>
-              <li>MUL_RETR:<br/>
+              <li>MUL_RETRY:<br/>
                 <code>countdown = countdown * request.retries</code></li>
-              <li>MUL_RETR_SECS:<br/>
+              <li>MUL_RETRY_SECS:<br/>
                 <code>countdown = request.retries * retry_countdown_multiply_retries_seconds</code></li>
             </ul>
           </td>
@@ -210,6 +210,12 @@ celery = {
 <section class="oe_container">
   <div class="oe_row oe_spaced">
     <h2 class="oe_slogan" style="color:#875A7B;">Changelog</h2>
+    <h4 class="oe_mb16">0.10</h4>
+    <ul>
+      <li>
+      <li>Renamed task retry settings: 'MUL_RETR' to 'MUL_RETRY', 'MUL_RETR_SECS' to 'MUL_RETRY_SECS').</li>
+      </li>
+    </ul>
     <h4 class="oe_mb16">0.9</h4>
     <ul>
       <li>
@@ -220,7 +226,7 @@ celery = {
     <h4 class="oe_mb16">0.8</h4>
     <ul>
       <li>Fix task retry countdown/interval ignored. For more info see <a href="https://github.com/novacode-nl/odoo-celery/issues/14" target="_blank">GitHub issue</a></li>
-      <li>Add task retry countdown settings, to increase countdown during retries ('ADD_SECS', 'MUL_RETR', 'MUL_RETR_SECS').</li>      
+      <li>Add task retry countdown settings, to increase countdown during retries ('ADD_SECS', 'MUL_RETRY', 'MUL_RETRY_SECS').</li>      
       <li>Search view of jammed tasks: (1) Add/show field <code>reference</code> (2) search-view with filters and grouping.</li>
       <li>Track task changes of fields <code>model, method, handle_jammed</code></li>
       <li>Disable create/copy in the task form-view.</li>
