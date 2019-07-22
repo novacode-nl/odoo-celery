@@ -34,7 +34,7 @@ class CeleryExample(models.Model):
             'countdown': 2,
             'retry': True,
             'max_retries': 4,
-            'retry_countdown_setting': 'MUL_RETRY_SECS',
+            'retry_countdown_setting': 'MUL_RETRIES_SECS',
             'retry_countdown_multiply_retries_seconds': 5,
             'retry_policy': {'interval_start': 2}
         }

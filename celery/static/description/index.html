@@ -56,7 +56,7 @@ celery = {
     'queue': 'high.priority',
     'countdown': 5,
     'retry': True,
-    'retry_countdown_setting': 'MUL_RETRY_SECS',
+    'retry_countdown_setting': 'MUL_RETRIES_SECS',
     'retry_countdown_multiply_retries_seconds': 60,
     'retry_policy': {
         'interval_start': 30
@@ -99,9 +99,9 @@ celery = {
             <ul>
               <li>ADD_SECS:<br/>
                 <code>countdown = countdown + retry_countdown_add_seconds</code></li>
-              <li>MUL_RETRY:<br/>
+              <li>MUL_RETRIES:<br/>
                 <code>countdown = countdown * request.retries</code></li>
-              <li>MUL_RETRY_SECS:<br/>
+              <li>MUL_RETRIES_SECS:<br/>
                 <code>countdown = request.retries * retry_countdown_multiply_retries_seconds</code></li>
             </ul>
           </td>
@@ -212,7 +212,7 @@ celery = {
     <h2 class="oe_slogan" style="color:#875A7B;">Changelog</h2>
     <h4 class="oe_mb16">0.10</h4>
     <ul>
-      <li>Renamed task retry settings: 'MUL_RETR' to 'MUL_RETRY', 'MUL_RETR_SECS' to 'MUL_RETRY_SECS'.</li>
+      <li>Renamed task retry settings: 'MUL_RETR' to 'MUL_RETRIES', 'MUL_RETR_SECS' to 'MUL_RETRIES_SECS'.</li>
       </li>
     </ul>
     <h4 class="oe_mb16">0.9</h4>
