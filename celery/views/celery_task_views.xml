@@ -35,7 +35,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                         <button
                             name="action_open_related_record" type="object" string="Related"
                             attrs="{'invisible': [('res_model', '=', False)]}"/>
-                        <field name="state" widget="statusbar" statusbar_visible="PENDING,STARTED,RETRY,FAILURE,SUCCESS"/>
+                        <field name="state" widget="statusbar" statusbar_visible="PENDING,STARTED,RETRY,RETRYING,FAILURE,SUCCESS"/>
                     </header>
                     <sheet>
                         <!-- fa-retweet (icon): because fontawesome fa-refresh isn't available in Odoo yet. -->
@@ -70,7 +70,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                 </group>
                             </page>
                             <page name="exc_info" string="Retry/Failure Information"
-                                  attrs="{'invisible': ['|', ('state', 'not in', ['RETRY', 'FAILURE']), ('result', '!=', False)]}">
+                                  attrs="{'invisible': ['|', ('state', 'not in', ['RETRY', 'RETRYING', 'FAILURE']), ('result', '!=', False)]}">
                                 <div attrs="{'invisible': [('exc_info', '!=', False)]}">
                                     <p>No Retry/Failure has occurred on this moment.</p>
                                     <p>Update the information by refreshing this view (button above).</p>
@@ -137,6 +137,8 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             domain="[('state', '=', 'STARTED')]"/>
                     <filter name="retry" string="Retry"
                             domain="[('state', '=', 'RETRY')]"/>
+                    <filter name="retry" string="Retrying"
+                            domain="[('state', '=', 'RETRYING')]"/>
                     <filter name="failure" string="Failure"
                             domain="[('state', '=', 'FAILURE')]"/>
                     <filter name="success" string="Success"

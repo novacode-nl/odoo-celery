@@ -23,6 +23,7 @@ TASK_NOT_FOUND = 'NOT_FOUND'
 STATE_PENDING = 'PENDING'
 STATE_STARTED = 'STARTED'
 STATE_RETRY = 'RETRY'
+STATE_RETRYING = 'RETRYING'
 STATE_FAILURE = 'FAILURE'
 STATE_SUCCESS = 'SUCCESS'
 STATE_JAMMED = 'JAMMED'
@@ -31,12 +32,13 @@ STATE_CANCEL = 'CANCEL'
 STATES = [(STATE_PENDING, 'Pending'),
           (STATE_STARTED, 'Started'),
           (STATE_RETRY, 'Retry'),
+          (STATE_RETRYING, 'Retrying'),
           (STATE_JAMMED, 'Jammed'),
           (STATE_FAILURE, 'Failure'),
           (STATE_SUCCESS, 'Success'),
           (STATE_CANCEL, 'Cancel')]
 
-STATES_TO_JAMMED = [STATE_STARTED, STATE_RETRY]
+STATES_TO_JAMMED = [STATE_STARTED, STATE_RETRY, STATE_RETRYING]
 STATES_TO_CANCEL = [STATE_PENDING, STATE_JAMMED]
 STATES_TO_REQUEUE = [STATE_PENDING, STATE_RETRY, STATE_JAMMED, STATE_FAILURE]
 
@@ -96,6 +98,7 @@ class CeleryTask(models.Model):
         - PENDING: The task is waiting for execution.
         - STARTED: The task has been started.
         - RETRY: The task is to be retried, possibly because of failure.
+        - RETRYING: The task is executing a retry, possibly because of failure.
         - JAMMED: The task has been Started, but due to inactivity marked as Jammed.
         - FAILURE: The task raised an exception, or has exceeded the retry limit.
         - SUCCESS: The task executed successfully.
@@ -268,13 +271,8 @@ class CeleryTask(models.Model):
         if not task:
             return ('OK', 'Task already processed')
 
-        # Start / Retry (refactor to absraction/neater code)
-        celery_retry = kwargs.get('celery_retry')
-        if celery_retry and task.retry and task.state == STATE_RETRY:
-            return (STATE_RETRY, 'Task is already executing a retry.')
-        elif celery_retry and task.retry:
-            task.state = STATE_RETRY
-            vals = {'state': STATE_RETRY, 'state_date': fields.Datetime.now()}
+        if task.retry and task.state == STATE_RETRY:
+            vals = {'state': STATE_RETRYING, 'state_date': fields.Datetime.now()}
         else:
             vals = {'state': STATE_STARTED, 'started_date': fields.Datetime.now()}
 
