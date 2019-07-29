@@ -209,7 +209,7 @@ class CeleryTask(models.Model):
     @api.model
     def _celery_call_task(self, user_id, uuid, model, method, kwargs):
         user, password, sudo = _get_celery_user_config()
-        url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        url = self.env['ir.config_parameter'].sudo().get_param('celery.celery_base_url')
         _args = [url, self._cr.dbname, user_id, uuid, model, method]
 
         if not kwargs.get('_password'):

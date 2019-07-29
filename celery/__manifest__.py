@@ -17,6 +17,7 @@
     },
     'data': [
         'data/ir_cron_data.xml',
+        'data/ir_config_parameter_data.xml',
         'security/celery_security.xml',
         'security/ir_model_access.xml',
         'wizard/celery_requeue_task_views.xml',
@@ -26,6 +27,7 @@
         'views/celery_task_views.xml',
         'views/celery_task_setting_views.xml',
         'views/celery_menu.xml',
+        'views/res_config_settings_views.xml',
     ],
     'images': [
         'static/description/banner.png',

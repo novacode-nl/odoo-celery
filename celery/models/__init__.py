@@ -3,3 +3,4 @@
 
 from . import celery_task
 from . import celery_task_setting
+from . import res_config_settings
