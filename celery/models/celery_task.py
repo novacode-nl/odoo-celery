@@ -60,9 +60,9 @@ RETRY_COUNTDOWN_SETTINGS = [
 
 
 def _get_celery_user_config():
-    user = (os.environ.get('ODOO_CELERY_USER') or config.misc.get("celery", {}).get('user') or config.misc.get("options", {}).get('celery_user'))
-    password = (os.environ.get('ODOO_CELERY_PASSWORD') or config.misc.get("celery", {}).get('password') or config.misc.get("options", {}).get('celery_password'))
-    sudo = (os.environ.get('ODOO_CELERY_SUDO') or config.misc.get("celery", {}).get('sudo') or config.misc.get("options", {}).get('celery_sudo'))
+    user = (os.environ.get('ODOO_CELERY_USER') or config.misc.get("celery", {}).get('user') or config.get('celery_user'))
+    password = (os.environ.get('ODOO_CELERY_PASSWORD') or config.misc.get("celery", {}).get('password') or config.get('celery_password'))
+    sudo = (os.environ.get('ODOO_CELERY_SUDO') or config.misc.get("celery", {}).get('sudo') or config.get('celery_sudo'))
     return (user, password, sudo)
 
 
