@@ -169,11 +169,28 @@ celery = {
     </div>
     <div class="oe_row_img oe_centered">
       <h4 class="oe_mb16 text-center">Odoo configuration</h4>
-      <p>
-        All you need is a few [celery] settings in the Odoo configuration file.
-        See: <a href="https://github.com/novacode-nl/odoo-celery/blob/11.0/celery/example.odoo.conf">example.odoo.conf</a>
-      </p>
+      <h5>All you need is to determine the Odoo Celery user and setup the credentials for XML-RPC authentication.</h5>
       <p>This enables the Celery process to authenticate in Odoo, by the XML-RPC server.</p>
+      <p>To support different kind of deployment and build tools, the credentials can either be setup as:
+        <ul>
+          <li>
+            (OS) Environment variables of the user running the Odoo server process: <code>ODOO_CELERY_USER</code> and <code>ODOO_CELERY_PASSWORD</code>
+          </li>
+          <li>
+            <p>Put in the <code>odoo.conf</code> file, e.g:
+              <pre style="background-color: #dedede;">
+celery_user = Odoo-User
+celery_password = Odoo-User-Password</pre>
+            <p>See: <a href="https://github.com/novacode-nl/odoo-celery/blob/12.0/celery/example.odoo.conf" target="_blank">example.odoo.conf</a></p>
+          </li>
+          <li>
+            <p>Put in the <code>odoo.conf</code> file, under section <code>[celery]</code> e.g:
+              <pre style="background-color: #dedede;">
+[celery]
+user = Odoo-User
+password = Odoo-User-Password</pre>
+            <p>See: <a href="https://github.com/novacode-nl/odoo-celery/blob/12.0/celery/example_section_celery.odoo.conf" target="_blank">example_section_celery.odoo.conf</a></p>
+          </li>
     </div>
     <div class="oe_row_img oe_centered">
       <h4 class="oe_mb16 text-center">Start the Celery (Odoo) worker server</h4>
