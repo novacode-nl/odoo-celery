@@ -121,8 +121,6 @@ class CeleryTask(models.Model):
         selection='_selection_retry_countdown_settings', string='Retry Countdown Setting')
     retry_countdown_add_seconds = fields.Integer(string='Retry Countdown add seconds')
     retry_countdown_multiply_retries_seconds = fields.Integer(string='Retry Countdown multiply retries seconds')
-    progress_max = fields.Float(string='Progress Max')
-    progress = fields.Float(string='Progress')
 
     def _selection_states(self):
         return STATES
@@ -148,18 +146,6 @@ class CeleryTask(models.Model):
             if task.state in [STATE_STARTED, STATE_RETRY]:
                 raise UserError(_('You cannot delete a running task.'))
         super(CeleryTask, self).unlink()
-
-    @api.model
-    def write_progress(self, uuid, progress):
-        try:
-            with registry(self._cr.dbname).cursor() as cr:
-                env = api.Environment(result_cr, self._uid, {})
-                task = self.with_env(env).search([('uuid', '=', uuid)])
-                task.progress =  (progress / task.progress_max) * 100
-        except:
-            # Silence exception, which otherwise causes task/method to
-            # fail.
-            pass
 
     @api.model
     def call_task(self, model, method, **kwargs):

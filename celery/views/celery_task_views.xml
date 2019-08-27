@@ -19,7 +19,6 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="create_date" readonly="1"/>
                     <field name="started_date"/>
                     <field name="state_date"/>
-                    <field name="progress" widget="progressbar" attrs="{'invisible': ['|', ('progress', '=', 0), ('progress', '=', 100)]}"/>
                     <field name="state"/>
 		</tree>
 	    </field>
@@ -45,9 +44,6 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             <group>
                                 <field name="uuid"/>
                                 <field name="ref" attrs="{'invisible': [('ref', '=', False)]}"/>
-                            </group>
-                            <group>
-                                <field name="progress" widget="progressbar" attrs="{'invisible': ['|', ('progress', '=', 0), ('progress', '=', 100)]}"/>
                             </group>
                         </group>
                         <group>
