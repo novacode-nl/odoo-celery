@@ -13,6 +13,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
         <record id="group_celery_manager" model="res.groups">
             <field name="name">Celery Manager</field>
             <field name="category_id" ref="celery.module_category_celery"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
         </record>
 
         <record id="group_celery_rpc" model="res.groups">
