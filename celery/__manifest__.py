@@ -26,6 +26,7 @@
         'report/celery_jammed_task_report_views.xml',
         'views/celery_task_views.xml',
         'views/celery_task_setting_views.xml',
+        'views/celery_queue_views.xml',
         'views/celery_menu.xml',
         'views/res_config_settings_views.xml',
     ],

@@ -75,7 +75,7 @@ class CeleryTask(models.Model):
     _order = 'id DESC'
 
     uuid = fields.Char(string='UUID', readonly=True, index=True, required=True)
-    queue = fields.Char(string='Queue', readonly=True, required=True, default=TASK_DEFAULT_QUEUE)
+    queue = fields.Char(string='Queue', readonly=True, required=True, default=TASK_DEFAULT_QUEUE, index=True)
     user_id = fields.Many2one('res.users', string='User ID', required=True, readonly=True)
     company_id = fields.Many2one('res.company', string='Company', index=True, readonly=True)
     model = fields.Char(string='Model', readonly=True)
@@ -169,13 +169,38 @@ class CeleryTask(models.Model):
             # The task (method/implementation) kwargs, needed in the rpc_run_task model/method.
             'kwargs': kwargs}
 
+        # queue selection
+        default_queue = kwargs.get('celery', False) and kwargs.get('celery').get('queue', '') or 'celery'
+        task_queue = False
+        task_setting_domain = [('model', '=', model), ('method', '=', method), ('active', '=', True)]
+        task_setting = self.env['celery.task.setting'].search(task_setting_domain)
+        if task_setting:
+            if task_setting.task_queue_ids:
+                if task_setting.use_first_empty_queue:
+                    for q in task_setting.task_queue_ids.sorted(key=lambda l: l.sequence):
+                        if q.queue_id.active:
+                            if self.search_count([('queue', '=', q.queue.name), ('state', '=', STATE_PENDING)]) <= q.queue_max_pending_tasks:
+                                # use the first queue that satisfies the criteria of N or less pending tasks
+                                task_queue = q.queue_id.name
+                                break
+                if not task_queue:
+                    # use the first queue from the task settings
+                    task_queue = task_setting.task_queue_ids[0].queue_id.name
+        if not task_queue:
+            # use the default queue specified in code if not defined in task settings
+            task_queue = default_queue
+
         if kwargs.get('celery'):
-            # Supported apply_async parameters/options shall be stored in the Task model-record.
-            celery_vals = copy.copy(kwargs.get('celery'))
-            if celery_vals.get('retry_policy'):
-                vals.update(celery_vals.get('retry_policy'))
-                del celery_vals['retry_policy']
-            vals.update(celery_vals)
+            kwargs['celery']['queue'] = task_queue
+        else:
+            kwargs['celery'] = {'queue': task_queue}
+
+        # Supported apply_async parameters/options shall be stored in the Task model-record.
+        celery_vals = copy.copy(kwargs.get('celery'))
+        if celery_vals.get('retry_policy'):
+            vals.update(celery_vals.get('retry_policy'))
+            del celery_vals['retry_policy']
+        vals.update(celery_vals)
 
         if kwargs.get('celery_task_vals'):
             celery_task_vals = copy.copy(kwargs.get('celery_task_vals'))
