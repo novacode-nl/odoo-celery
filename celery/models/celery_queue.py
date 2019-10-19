@@ -21,34 +21,57 @@ class CeleryQueue(models.Model):
 
     @api.multi
     def _compute_stats(self):
-        self._cr.execute("SELECT queue, COUNT(*) FROM celery_task GROUP BY queue")
-        queue_tasks = self._cr.fetchall()
-        self._cr.execute("SELECT queue, COUNT(*) FROM celery_task WHERE state = %s GROUP BY queue", (STATE_PENDING, ))
-        queue_tasks_pending = self._cr.fetchall()
-        self._cr.execute("SELECT queue, COUNT(*) FROM celery_task WHERE create_date > (current_timestamp - interval '24 hour') GROUP BY queue")
-        queue_tasks_24h = self._cr.fetchall()
-        self._cr.execute("SELECT queue, COUNT(*) FROM celery_task WHERE create_date > (current_timestamp - interval '24 hour') AND state = %s GROUP BY queue", (STATE_SUCCESS, ))
-        queue_tasks_24h_done = self._cr.fetchall()
-        self._cr.execute("SELECT queue, COUNT(*) FROM celery_task WHERE create_date > (current_timestamp - interval '24 hour') AND (state = %s OR state = %s) GROUP BY queue", (STATE_FAILURE, STATE_RETRY))
-        queue_tasks_24h_failed = self._cr.fetchall()
+        if 'compute_queue_stats' in self._context:
+            self._cr.execute("""SELECT
+                                    'total_tasks:all' AS queue_stat_field, COUNT(*) AS counted
+                                    FROM celery_task
+                                UNION
+                                SELECT
+                                    queue || ':all' AS queue_stat_field, COUNT(*) AS counted
+                                    FROM celery_task
+                                    GROUP BY queue
+                                UNION
+                                SELECT
+                                    queue || ':pending' AS queue_stat_field, COUNT(*) AS counted
+                                    FROM celery_task
+                                    WHERE state = %s
+                                    GROUP BY queue
+                                UNION
+                                SELECT
+                                    queue || ':24h' AS queue_stat_field, COUNT(*) AS counted
+                                    FROM celery_task
+                                    WHERE create_date > (current_timestamp - interval '24 hour')
+                                    GROUP BY queue
+                                UNION
+                                SELECT
+                                    queue || ':24h_done' AS queue_stat_field, COUNT(*) AS counted
+                                    FROM celery_task
+                                    WHERE create_date > (current_timestamp - interval '24 hour')
+                                        AND state = %s 
+                                    GROUP BY queue
+                                UNION
+                                SELECT
+                                    queue || ':24h_failed' AS queue_stat_field, COUNT(*) AS counted
+                                    FROM celery_task
+                                    WHERE create_date > (current_timestamp - interval '24 hour')
+                                        AND (state = %s OR state = %s)
+                                    GROUP BY queue
+                                """, (STATE_PENDING, STATE_SUCCESS, STATE_FAILURE, STATE_RETRY))
+            queue_tasks = self._cr.fetchall()
 
-        total_tasks = sum([t[-1] for t in queue_tasks])
-        queue_tasks = dict(queue_tasks)
-        queue_tasks_24h = dict(queue_tasks_24h)
-        queue_tasks_24h_done = dict(queue_tasks_24h_done)
-        queue_tasks_24h_failed = dict(queue_tasks_24h_failed)
-        queue_tasks_pending = dict(queue_tasks_pending)
+            queue_tasks = dict(queue_tasks)
+            total_tasks = queue_tasks.get('total_tasks:all', 1)
 
-        for record in self:
-            record.queue_tasks = queue_tasks.get(record.name, 0)
-            record.queue_tasks_pending = queue_tasks_pending.get(record.name, 0)
-            record.queue_tasks_24h = queue_tasks_24h.get(record.name, 0)
-            record.queue_tasks_24h_done = queue_tasks_24h_done.get(record.name, 0)
-            record.queue_tasks_24h_failed = queue_tasks_24h_failed.get(record.name, 0)
-            if queue_tasks_24h.get(record.name, 0) == 0: queue_tasks_24h[record.name] = 1  # avoid division by zero
-            if total_tasks == 0: total_tasks = 1  # avoid division by zero
-            record.queue_tasks_ratio = (float(queue_tasks.get(record.name, 0)) / float(total_tasks)) * 100.00
-            record.queue_percentage = (float(queue_tasks_24h_done.get(record.name, 0)) / float(queue_tasks_24h.get(record.name, 0))) * 100.00
+            for record in self:
+                record.queue_tasks = queue_tasks.get(record.name + ':all', 0)
+                record.queue_tasks_pending = queue_tasks.get(record.name + ':pending', 0)
+                record.queue_tasks_24h = queue_tasks.get(record.name + ':24h', 0)
+                record.queue_tasks_24h_done = queue_tasks.get(record.name + ':24h_done', 0)
+                record.queue_tasks_24h_failed = queue_tasks.get(record.name + ':24h_failed', 0)
+                queue_tasks_24h = record.queue_tasks_24h
+                if queue_tasks_24h == 0: queue_tasks_24h = 1  # avoid division by zero
+                record.queue_tasks_ratio = (float(record.queue_tasks) / float(total_tasks)) * 100.00
+                record.queue_percentage = (float(record.queue_tasks_24h_done) / float(queue_tasks_24h)) * 100.00
 
     name = fields.Char('Name', required=True, track_visibility='onchange')
     active = fields.Boolean(string='Active', default=True, track_visibility='onchange')
