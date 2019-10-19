@@ -127,7 +127,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             <field name="res_model">celery.queue</field>
             <field name="view_type">form</field>
             <field name="view_mode">kanban,tree,form</field>
-            <field name="context">{'search_default_all': 1}</field>
+            <field name="context">{'search_default_all': 1, 'compute_queue_stats': True}</field>
             <field name="view_id" ref="view_celery_queue_kanban"/>
         </record>
     </data>
