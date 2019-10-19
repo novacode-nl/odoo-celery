@@ -184,16 +184,17 @@ class CeleryTask(models.Model):
                                 task_queue = q.queue_id.name
                                 break
                 if not task_queue:
-                    # use the first queue from the task settings
-                    task_queue = task_setting.task_queue_ids[0].queue_id.name
+                    # use the first active queue from the task settings
+                    active_queues = task_setting.task_queue_ids.filtered(lambda q: q.queue_id.active)
+                    if active_queues:
+                        task_queue = active_queues[0].queue_id.name
         if not task_queue:
             # use the default queue specified in code if not defined in task settings
             task_queue = default_queue
 
-        if kwargs.get('celery'):
-            kwargs['celery']['queue'] = task_queue
-        else:
-            kwargs['celery'] = {'queue': task_queue}
+        if not kwargs.get('celery'):
+            kwargs['celery'] = {}
+        kwargs['celery'].update({'queue': task_queue})
 
         # Supported apply_async parameters/options shall be stored in the Task model-record.
         celery_vals = copy.copy(kwargs.get('celery'))
