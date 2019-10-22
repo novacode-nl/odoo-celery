@@ -433,7 +433,6 @@ class CeleryTask(models.Model):
             if t.handle_jammed and t.handle_jammed_by_cron:
                 t.task_id.action_jammed()
 
-
     @api.model
     def cron_autovacuum(self, **kwargs):
         # specify rows_per_run for high loaded systems
@@ -456,9 +455,10 @@ class CeleryTask(models.Model):
         if not cancel:
             states.remove(STATE_CANCEL)
 
-        # write_date: because tasks could be created a while ago, but
+        # state_date: because tasks could be created a while ago, but
         # finished much later.
         domain = [
+            ('state_date', '!=', False), # extra safety check.
             ('state_date', '<=', from_date),
             ('state', 'in', states)
         ]
@@ -475,7 +475,6 @@ class CeleryTask(models.Model):
             # Commit current step not to rollback the entire transation
             self.env.cr.commit()
         return True
-
 
     @api.multi
     def action_open_related_record(self):
