@@ -2,6 +2,7 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
 import copy
+from datetime import datetime, timedelta
 import json
 import logging
 import os
@@ -83,7 +84,7 @@ class CeleryTask(models.Model):
     ref = fields.Char(string='Reference', index=True, readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
     # TODO REFACTOR compute and store, by @api.depends (replace all ORM writes)
-    state_date = fields.Datetime(string='State Time', readonly=True)
+    state_date = fields.Datetime(string='State Time', index=True, readonly=True)
     result = fields.Text(string='Result', readonly=True)
     exc_info = fields.Text(string='Exception Info', readonly=True)
     state = fields.Selection(
@@ -431,6 +432,50 @@ class CeleryTask(models.Model):
         for t in tasks:
             if t.handle_jammed and t.handle_jammed_by_cron:
                 t.task_id.action_jammed()
+
+
+    @api.model
+    def cron_autovacuum(self, **kwargs):
+        # specify rows_per_run for high loaded systems
+        rows_per_run = kwargs.get('rows_per_run', 100)
+        days = kwargs.get('days', 7)
+        hours = kwargs.get('hours', 0)
+        minutes = kwargs.get('minutes', 0)
+        seconds = kwargs.get('seconds', 0)
+
+        success = kwargs.get('success', True)
+        failure = kwargs.get('failure', True)
+        cancel = kwargs.get('cancel', True)
+
+        from_date = datetime.now() - timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
+        states = [STATE_SUCCESS, STATE_FAILURE, STATE_CANCEL]
+        if not success:
+            states.remove(STATE_SUCCESS)
+        if not failure:
+            states.remove(STATE_FAILURE)
+        if not cancel:
+            states.remove(STATE_CANCEL)
+
+        # write_date: because tasks could be created a while ago, but
+        # finished much later.
+        domain = [
+            ('state_date', '<=', from_date),
+            ('state', 'in', states)
+        ]
+
+        # Remove tasks in a loop with rows_per_run step
+        while True:
+            tasks = self.search(domain, limit=rows_per_run)
+            task_count = len(tasks)
+            if not tasks:
+                break
+            else:
+                tasks.unlink()
+                logger.info('Celery autovacuum %s tasks', task_count)
+            # Commit current step not to rollback the entire transation
+            self.env.cr.commit()
+        return True
+
 
     @api.multi
     def action_open_related_record(self):
