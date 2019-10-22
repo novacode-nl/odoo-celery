@@ -84,7 +84,7 @@ class CeleryTask(models.Model):
     ref = fields.Char(string='Reference', index=True, readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
     # TODO REFACTOR compute and store, by @api.depends (replace all ORM writes)
-    state_date = fields.Datetime(string='State Time', readonly=True)
+    state_date = fields.Datetime(string='State Time', index=True, readonly=True)
     result = fields.Text(string='Result', readonly=True)
     exc_info = fields.Text(string='Exception Info', readonly=True)
     state = fields.Selection(
@@ -435,25 +435,37 @@ class CeleryTask(models.Model):
 
 
     @api.model
-    def cron_autovacuum(self, days=7, hours=0, minutes=0, seconds=0,
-                        success=True, failure=True, cancel=True,
-                        rows_per_run=100):
+    def cron_autovacuum(self, **kwargs):
         # specify rows_per_run for high loaded systems
-        from_date = datetime.now() - timedelta(
-                                            days=days, hours=hours,
-                                            minutes=minutes, seconds=seconds)
-        states = ['SUCCESS', 'FAILURE', 'CANCEL']
+        rows_per_run = kwargs.get('rows_per_run', 100)
+        days = kwargs.get('days', 7)
+        hours = kwargs.get('hours', 0)
+        minutes = kwargs.get('minutes', 0)
+        seconds = kwargs.get('seconds', 0)
+
+        success = kwargs.get('success', True)
+        failure = kwargs.get('failure', True)
+        cancel = kwargs.get('cancel', True)
+
+        from_date = datetime.now() - timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
+        states = [STATE_SUCCESS, STATE_FAILURE, STATE_CANCEL]
         if not success:
-            states.remove('SUCCESS')
+            states.remove(STATE_SUCCESS)
         if not failure:
-            states.remove('FAILURE')
+            states.remove(STATE_FAILURE)
         if not cancel:
-            states.remove('CANCEL')
+            states.remove(STATE_CANCEL)
+
+        # write_date: because tasks could be created a while ago, but
+        # finished much later.
+        domain = [
+            ('state_date', '<=', from_date),
+            ('state', 'in', states)
+        ]
+
         # Remove tasks in a loop with rows_per_run step
         while True:
-            tasks = self.sudo().search([('create_date', '<=', from_date),
-                                        ('state', 'in', states)],
-                                       limit=rows_per_run)
+            tasks = self.search(domain, limit=rows_per_run)
             task_count = len(tasks)
             if not tasks:
                 break
