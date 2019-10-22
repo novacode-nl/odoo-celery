@@ -22,8 +22,19 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             <field name="name">Celery: Autovacuum Tasks</field>
             <field name="model_id" ref="model_celery_task"/>
             <field name="state">code</field>
-            <field name="code">model.cron_autovacuum(days=7)</field>
-            <field name="active" eval="True"/>
+            <field name="code">## Default settings to override with kwargs:
+#
+# days=90 (Delete tasks older then 90 days)
+# hours=0 (Set hours to delete tasks older then timedelta addition of N hours)
+# minutes=0 (Set minutes to delete tasks older then timedelta addition of N minutes)
+# seconds=0 (Set seconds to delete tasks older then timedelta addition of N seconds)
+#
+# success=True (Delete tasks with state=Success)
+# failure=True (Delete tasks with state=Failure)
+# cancel=True (Delete tasks with state=Cancel)
+model.cron_autovacuum()
+            </field>
+            <field name="active" eval="False"/>
             <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">1</field>
             <field name="interval_type">hours</field>
