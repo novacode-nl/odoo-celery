@@ -33,7 +33,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 # failure=True (Delete tasks with state=Failure)
 # cancel=True (Delete tasks with state=Cancel)
 #
-# records_per_run=100(
+# records_per_run=100
 model.cron_autovacuum()
             </field>
             <field name="active" eval="False"/>
