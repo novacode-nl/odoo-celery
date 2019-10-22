@@ -435,8 +435,8 @@ class CeleryTask(models.Model):
 
     @api.model
     def cron_autovacuum(self, **kwargs):
-        # specify rows_per_run for high loaded systems
-        rows_per_run = kwargs.get('rows_per_run', 100)
+        # specify records_per_run for high loaded systems
+        records_per_run = kwargs.get('records_per_run', 100)
         days = kwargs.get('days', 90)
         hours = kwargs.get('hours', 0)
         minutes = kwargs.get('minutes', 0)
@@ -463,9 +463,9 @@ class CeleryTask(models.Model):
             ('state', 'in', states)
         ]
 
-        # Remove tasks in a loop with rows_per_run step
+        # Remove tasks in a loop with records_per_run step
         while True:
-            tasks = self.search(domain, limit=rows_per_run)
+            tasks = self.search(domain, limit=records_per_run)
             task_count = len(tasks)
             if not tasks:
                 break
