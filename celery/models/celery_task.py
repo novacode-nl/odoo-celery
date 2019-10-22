@@ -448,6 +448,7 @@ class CeleryTask(models.Model):
         cancel = kwargs.get('cancel', True)
 
         from_date = datetime.now() - timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
+        from_date = fields.Datetime.to_string(from_date)
         states = [STATE_SUCCESS, STATE_FAILURE, STATE_CANCEL]
         if not success:
             states.remove(STATE_SUCCESS)
