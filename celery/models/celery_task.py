@@ -2,6 +2,7 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
 import copy
+from datetime import datetime, timedelta
 import json
 import logging
 import os
@@ -431,6 +432,38 @@ class CeleryTask(models.Model):
         for t in tasks:
             if t.handle_jammed and t.handle_jammed_by_cron:
                 t.task_id.action_jammed()
+
+
+    @api.model
+    def cron_autovacuum(self, days=7, hours=0, minutes=0, seconds=0,
+                        success=True, failure=True, cancel=True,
+                        rows_per_run=100):
+        # specify rows_per_run for high loaded systems
+        from_date = datetime.now() - timedelta(
+                                            days=days, hours=hours,
+                                            minutes=minutes, seconds=seconds)
+        states = ['SUCCESS', 'FAILURE', 'CANCEL']
+        if not success:
+            states.remove('SUCCESS')
+        if not failure:
+            states.remove('FAILURE')
+        if not cancel:
+            states.remove('CANCEL')
+        # Remove tasks in a loop with rows_per_run step
+        while True:
+            tasks = self.sudo().search([('create_date', '<=', from_date),
+                                        ('state', 'in', states)],
+                                       limit=rows_per_run)
+            task_count = len(tasks)
+            if not tasks:
+                break
+            else:
+                tasks.unlink()
+                logger.info('Celery autovacuum %s tasks', task_count)
+            # Commit current step not to rollback the entire transation
+            self.env.cr.commit()
+        return True
+
 
     @api.multi
     def action_open_related_record(self):
