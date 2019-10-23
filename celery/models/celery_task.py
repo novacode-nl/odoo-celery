@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import json
 import logging
 import os
+import psutil
 import traceback
 import uuid
 
@@ -14,8 +15,8 @@ from odoo.addons.base_sparse_field.models.fields import Serialized
 from odoo.exceptions import UserError
 from odoo.tools import config
 
-from ..odoo import call_task, TASK_DEFAULT_QUEUE
 from ..fields import TaskSerialized
+from ..odoo import app, call_task, TASK_DEFAULT_QUEUE
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +28,15 @@ STATE_RETRY = 'RETRY'
 STATE_RETRYING = 'RETRYING'
 STATE_FAILURE = 'FAILURE'
 STATE_SUCCESS = 'SUCCESS'
-STATE_JAMMED = 'JAMMED'
+STATE_REVOKE = 'REVOKE'
 STATE_CANCEL = 'CANCEL'
+
+# TODO
+# Storing this Jammed situation into state is just wrong!
+# - Rewrite to store in boolean field (seems_jammed).
+# - Add db migration.
+# - Release with backwards compatibility remark!
+STATE_JAMMED = 'JAMMED'
 
 STATES = [(STATE_PENDING, 'Pending'),
           (STATE_STARTED, 'Started'),
@@ -37,12 +45,21 @@ STATES = [(STATE_PENDING, 'Pending'),
           (STATE_JAMMED, 'Jammed'),
           (STATE_FAILURE, 'Failure'),
           (STATE_SUCCESS, 'Success'),
+          (STATE_REVOKE, 'Revoke'),
           (STATE_CANCEL, 'Cancel')]
 
-STATES_TO_JAMMED = [STATE_STARTED, STATE_RETRY, STATE_RETRYING]
-STATES_TO_CANCEL = [STATE_PENDING, STATE_JAMMED]
-STATES_TO_REQUEUE = [STATE_PENDING, STATE_RETRY, STATE_JAMMED, STATE_FAILURE]
+# Set state to Cancel (tasks in scheduled state)
+STATES_TO_CANCEL = [STATE_PENDING, STATE_RETRY, STATE_JAMMED]
 
+# Revoke and terminate (tasks in scheduled or running state).
+STATES_TO_REVOKE = [STATE_PENDING, STATE_STARTED, STATE_RETRY, STATE_RETRYING, STATE_JAMMED]
+
+# Requeue (tasks in scheduled, running and completed state)
+STATES_TO_REQUEUE = [STATE_PENDING, STATE_STARTED, STATE_RETRY, STATE_RETRYING, STATE_FAILURE, STATE_CANCEL, STATE_REVOKE]
+
+# TODO
+# shall be rewritten, see above. Search all occurrences in code.
+STATES_TO_JAMMED = [STATE_STARTED, STATE_RETRY, STATE_RETRYING]
 
 CELERY_PARAMS = [
     'queue', 'retry', 'max_retries', 'interval_start', 'interval_step',
@@ -104,6 +121,13 @@ class CeleryTask(models.Model):
         - FAILURE: The task raised an exception, or has exceeded the retry limit.
         - SUCCESS: The task executed successfully.
         - CANCEL: The task has been aborted and cancelled by user action.""")
+
+    # System data
+    celery_task_id = fields.Char(string='Celery Task ID', readonly=True, index=True)
+    pid = fields.Integer(string='PID')
+    pg_backend_pid = fields.Integer(string='Postgres PID')
+
+    # Bind resource (Odoo model object)
     res_model = fields.Char(string='Related Model', readonly=True)
     res_ids = fields.Serialized(string='Related Ids', readonly=True)
 
@@ -263,6 +287,13 @@ class CeleryTask(models.Model):
         else:
             vals = {'state': STATE_STARTED, 'started_date': fields.Datetime.now()}
 
+        # System data
+        celery_task_id = kwargs.get('celery_task_vals', False) and kwargs.get('celery_task_vals').get('celery_task_id')
+        if celery_task_id:
+            vals['celery_task_id'] = celery_task_id
+        vals['pid'] = os.getpid()
+        vals['pg_backend_pid'] = self._cr._cnx.get_backend_pid()
+
         # Store state before execution.
         with registry(self._cr.dbname).cursor() as result_cr:
             env = api.Environment(result_cr, self._uid, {})
@@ -291,10 +322,21 @@ class CeleryTask(models.Model):
 
                 if isinstance(res, dict):
                     result = res.get('result', True)
-                    vals.update({'res_model': res.get('res_model'), 'res_ids': res.get('res_ids')})
+                    vals.update({
+                        'res_model': res.get('res_model'),
+                        'res_ids': res.get('res_ids')
+                    })
                 else:
                     result = res
-                vals.update({'state': STATE_SUCCESS, 'state_date': fields.Datetime.now(), 'result': result, 'exc_info': False})
+                vals.update({
+                    'state': STATE_SUCCESS,
+                    'state_date': fields.Datetime.now(),
+                    'result': result,
+                    'exc_info': False,
+                    'celery_task_id': False,
+                    'pid': False,
+                    'pg_backend_pid': False
+                })
             except Exception as e:
                 """ The Exception-handler does a rollback. So we need a new
                 transaction/cursor to store data about RETRY and exception info/traceback. """
@@ -318,7 +360,14 @@ class CeleryTask(models.Model):
                         ref=task_ref,
                         queue=task_queue,
                         exc=e))
-                vals.update({'state': state, 'state_date': fields.Datetime.now(), 'exc_info': exc_info})
+                vals.update({
+                    'state': state,
+                    'state_date': fields.Datetime.now(),
+                    'exc_info': exc_info,
+                    'celery_task_id': False,
+                    'pid': False,
+                    'pg_backend_pid': False,
+                })
                 logger.debug('Exception rpc_run_task: {exc_info}'.format(uuid=task_uuid, exc_info=exc_info))
                 cr.rollback()
             finally:
@@ -354,18 +403,24 @@ class CeleryTask(models.Model):
 
     @api.multi
     def action_pending(self):
+        vals = {
+            'state': STATE_PENDING,
+            'started_date': False,
+            'state_date': False,
+            'celery_task_id': False,
+            'pid': False,
+            'pg_backend_pid': False,
+            'result': False,
+            'exc_info': False
+        }
         for task in self:
-            task.state = STATE_PENDING
-            task.started_date = None
-            task.state_date = None
-            task.result = None
-            task.exc_info = None
+            task.write(vals)
 
     def _states_to_requeue(self):
         return STATES_TO_REQUEUE
 
     @api.multi
-    def action_requeue(self):
+    def action_requeue(self, always=False):
         user, password, sudo = _get_celery_user_config()
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
 
@@ -373,16 +428,31 @@ class CeleryTask(models.Model):
             raise UserError('No user found with login: {login}'.format(login=user))
         user_id = user_id[0]['id']
 
-        states_to_requeue = self._states_to_requeue()
+        if always:
+            tasks = self
+        else:
+            tasks = self.filtered(lambda r: r.state in self._states_to_requeue())
+        self._workers_revoke(tasks)
 
-        for task in self:
-            if task.state in states_to_requeue:
-                task.action_pending()
-                try:
-                    _kwargs = json.loads(task.kwargs)
-                    self._celery_call_task(task.user_id.id, task.uuid, task.model, task.method, _kwargs)
-                except CeleryCallTaskException as e:
-                    logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
+        for task in tasks:
+            # Terminating the Odoo server process for tasks, requires Odoo with the multiprocessing server (workers).
+            # Becasue terminating in threaded mode, kills the Odoo main process.
+            if config.get('workers'):
+                process = task._pid_process()
+                if process:
+                    msg = '[Celery] Task %s - terminating task PID %s' % (task.uuid, task.pid)
+                    logger.info(msg)
+                    process.terminate()
+                else:
+                    msg = '[Celery] Task %s - no process PID %s to terminate' % (task.uuid, task.pid)
+                    logger.info(msg)
+
+            task.action_pending()
+            try:
+                _kwargs = json.loads(task.kwargs)
+                self._celery_call_task(task.user_id.id, task.uuid, task.model, task.method, _kwargs)
+            except CeleryCallTaskException as e:
+                logger.error(_('ERROR IN requeue %s: %s') % (task.uuid, e))
         return True
 
     def _states_to_cancel(self):
@@ -397,14 +467,15 @@ class CeleryTask(models.Model):
             raise UserError('No user found with login: {login}'.format(login=user))
         user_id = user_id[0]['id']
 
-        states_to_cancel = self._states_to_cancel()
-
-        for task in self:
-            if task.state in states_to_cancel:
-                task.write({
-                    'state': STATE_CANCEL,
-                    'state_date': fields.Datetime.now()
-                })
+        tasks = self.filtered(lambda r: r.state in self._states_to_cancel())
+        for task in tasks:
+            task.write({
+                'celery_task_id': False,
+                'pid': False,
+                'pg_backend_pid': False,
+                'state': STATE_CANCEL,
+                'state_date': fields.Datetime.now()
+            })
         return True
 
     @api.multi
@@ -422,6 +493,43 @@ class CeleryTask(models.Model):
                     'state': STATE_JAMMED,
                     'state_date': fields.Datetime.now()
                 })
+        return True
+
+    def _states_to_revoke(self):
+        return STATES_TO_REVOKE
+
+    @api.multi
+    def action_revoke(self):
+        user, password, sudo = _get_celery_user_config()
+        user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
+
+        if not user_id:
+            raise UserError('No user found with login: {login}'.format(login=user))
+        user_id = user_id[0]['id']
+
+        if not config.get('workers'):
+            raise UserError(_('Revoking tasks requires Odoo with the multiprocessing server (workers).'))
+
+        tasks = self.filtered(lambda r: r.state in self._states_to_revoke())
+        self._workers_revoke(tasks)
+        for task in tasks:
+            process = task._pid_process()
+            if process:
+                # TODO write in chatter too
+                msg = '[Celery] Revoke task %s - Terminating PID %s...' % (task.uuid, task.pid)
+                logger.info(msg)
+                process.terminate()
+            else:
+                # TODO write in chatter too
+                msg = '[Celery] Revoke task %s - No process PID %s' % (task.uuid, task.pid)
+                logger.info(msg)
+            task.write({
+                'celery_task_id': False,
+                'pid': False,
+                'pg_backend_pid': False,
+                'state': STATE_REVOKE,
+                'state_date': fields.Datetime.now()
+            })
         return True
 
     @api.model
@@ -508,6 +616,48 @@ class CeleryTask(models.Model):
     @api.multi
     def refresh_view(self):
         return True
+
+    @api.model_cr
+    def _register_hook(self):
+        """ stuff to do right after the registry is built """
+
+        # Purge all tasks from workers
+        app.control.purge()
+
+        # Check whether field exists. This to avoid crashing Odoo
+        # server, in case the Celery module is already installed, but
+        # not upgraded yet.
+        Fields = self.env['ir.model.fields']
+        field_pid = Fields._get_id(self._name, 'pid')
+
+        if field_pid:
+            # Clear PID's because new Odoo worker processes.
+            domain = ['|', ('pid', '!=', 0), ('state', 'in', [STATE_PENDING, STATE_RETRY])]
+            past_running = self.search(domain)
+
+            if len(past_running) > 0:
+                logger.info('[Celery] Starting Odoo and revoking %s tasks...' % len(past_running))
+                # XXX Commented action_requeue() below, also calls
+                # _workers_revoke(), but seems to late and concurrency
+                # issues arise?  So run it now.
+                self._workers_revoke(past_running)
+                # TODO FIXME causes Odoo concurrency and locking/timeout issues.
+                # past_running.action_requeue(True)
+
+    def _pid_process(self):
+        if not psutil.pid_exists(self.pid) or self.pid == os.getpid():
+            return False
+        process = psutil.Process(self.pid)
+        if any([e for e in process.cmdline() if 'odoo-bin' in e]):
+            return process
+        else:
+            return False
+
+    @api.model
+    def _workers_revoke(self, tasks):
+        # Revoke and terminate task in Celery queue (MQ)
+        task_ids = tasks.mapped('celery_task_id')
+        app.control.revoke(task_ids, terminate=True)
 
 
 class CeleryCallTaskException(Exception):

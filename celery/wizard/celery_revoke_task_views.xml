@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<!-- Copyright Nova Code (http://www.novacode.nl)
+License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
+
+<odoo>
+    <data>
+        <record id="view_revoke_celery_task" model="ir.ui.view">
+            <field name="name">Revoke Task</field>
+            <field name="model">celery.revoke.task</field>
+            <field name="arch" type="xml">
+                <field name="odoo_workers" invisible="1"/>
+                <form string="Revoke Tasks">
+                    <group attrs="{'invisible': [('odoo_workers', '>', 0)]}" cols="1">
+                        <h3 colspan="2">The "Revoking Tasks" (feature) requires an Odoo server with multiprocessing enabled.</h3>
+                        <p colspan="2">More info: <a href="https://www.odoo.com/documentation/12.0/reference/cmdline.html#multiprocessing" target="_blank">Multiprocessing server</a></p>
+                    </group>
+                    <group string="The selected tasks will be revoked and terminated." attrs="{'invisible': [('odoo_workers', '=', 0)]}">
+                        <field name="task_ids" nolabel="1"/>
+                    </group>
+                    <footer>
+                        <button name="action_revoke" string="Revoke Task(s)" type="object" class="btn btn-primary" attrs="{'invisible': [('odoo_workers', '=', 0)]}"/>
+                        <button string="Close" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_revoke_celery_task" model="ir.actions.act_window">
+            <field name="name">Terminate/Revoke Task</field>
+            <field name="res_model">celery.revoke.task</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_revoke_celery_task"/>
+            <field name="target">new</field>
+            <field name="binding_model_id" ref="celery.model_celery_task"/>
+        </record>
+    </data>
+</odoo>

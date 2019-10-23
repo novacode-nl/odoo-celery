@@ -10,12 +10,14 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	    <field name="type">tree</field>
 	    <field name="arch" type="xml">
 		<tree string="Celery Tasks" create="false"
-                      decoration-muted="state in ('SUCCESS', 'CANCEL')" decoration-danger="state == 'FAILURE'">
+                      decoration-muted="state in ('SUCCESS', 'CANCEL', 'REVOKE')" decoration-danger="state == 'FAILURE'">
 		    <field name="uuid"/>
                     <field name="model"/>
                     <field name="method"/>
                     <field name="ref"/>
                     <field name="queue"/>
+                    <field name="celery_task_id"/>
+                    <field name="pid"/>
                     <field name="create_date" readonly="1"/>
                     <field name="started_date"/>
                     <field name="state_date"/>
@@ -53,6 +55,9 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             </group>
                             <group>
                                 <field name="queue"/>
+                                <field name="celery_task_id"/>
+                                <field name="pid"/>
+                                <field name="pg_backend_pid"/>
                                 <field name="create_date"/>
                                 <field name="started_date"/>
                                 <field name="state_date"/>
@@ -127,6 +132,9 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="method"/>
                     <field name="ref"/>
                     <field name="queue"/>
+                    <field name="celery_task_id"/>
+                    <field name="pid"/>
+                    <field name="pg_backend_pid"/>
                     <filter name="pending" string="Pending"
                             domain="[('state', '=', 'PENDING')]"/>
                     <filter name="started" string="Started"
@@ -139,10 +147,13 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             domain="[('state', '=', 'FAILURE')]"/>
                     <filter name="success" string="Success"
                             domain="[('state', '=', 'SUCCESS')]"/>
-                    <filter name="jammed" string="Jammed"
-                            domain="[('state', '=', 'JAMMED')]"/>
                     <filter name="cancel" string="Cancel"
                             domain="[('state', '=', 'CANCEL')]"/>
+                    <filter name="revoke" string="Revoke"
+                            domain="[('state', '=', 'REVOKE')]"/>
+                    <separator/>
+                    <filter name="jammed" string="Jammed"
+                            domain="[('state', '=', 'JAMMED')]"/>
 		    <group expand="0" string="Group By">
 	                <filter string="Model" name="model" domain="[]" context="{'group_by': 'model'}"/>
 	                <filter string="Task/method" name="method" domain="[]" context="{'group_by': 'method'}"/>

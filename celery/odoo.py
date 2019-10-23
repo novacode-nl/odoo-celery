@@ -40,6 +40,10 @@ def call_task(self, url, db, user_id, task_uuid, model, method, **kwargs):
     args = [task_uuid, model, method]
     _kwargs = copy.deepcopy(kwargs)
 
+    if not 'celery_task_vals' in _kwargs:
+        _kwargs['celery_task_vals'] = {}
+    _kwargs['celery_task_vals']['celery_task_id'] = self.request.id
+
     # Needed in the retry (call), to hide _password.
     _kwargsrepr = copy.deepcopy(kwargs)
 

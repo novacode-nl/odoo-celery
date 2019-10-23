@@ -2,5 +2,6 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
 from . import celery_requeue_task
+from . import celery_revoke_task
 from . import celery_cancel_task
 from . import celery_handle_jammed_task
