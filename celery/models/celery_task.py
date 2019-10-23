@@ -435,8 +435,8 @@ class CeleryTask(models.Model):
 
     @api.model
     def autovacuum(self, **kwargs):
-        # specify records_per_run for high loaded systems
-        records_per_run = kwargs.get('records_per_run', 100)
+        # specify batch_size for high loaded systems
+        batch_size = kwargs.get('batch_size', 100)
         days = kwargs.get('days', 90)
         hours = kwargs.get('hours', 0)
         minutes = kwargs.get('minutes', 0)
@@ -463,9 +463,9 @@ class CeleryTask(models.Model):
             ('state', 'in', states)
         ]
 
-        # Remove tasks in a loop with records_per_run step
+        # Remove tasks in a loop with batch_size step
         while True:
-            tasks = self.search(domain, limit=records_per_run)
+            tasks = self.search(domain, limit=batch_size)
             task_count = len(tasks)
             if not tasks:
                 break
