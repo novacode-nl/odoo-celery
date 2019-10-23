@@ -434,7 +434,7 @@ class CeleryTask(models.Model):
                 t.task_id.action_jammed()
 
     @api.model
-    def cron_autovacuum(self, **kwargs):
+    def autovacuum(self, **kwargs):
         # specify records_per_run for high loaded systems
         records_per_run = kwargs.get('records_per_run', 100)
         days = kwargs.get('days', 90)

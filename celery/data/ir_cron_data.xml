@@ -34,7 +34,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 # cancel=True (Delete tasks with state=Cancel)
 #
 # records_per_run=100
-model.cron_autovacuum()
+model.autovacuum()
             </field>
             <field name="active" eval="False"/>
             <field name="user_id" ref="base.user_root"/>
