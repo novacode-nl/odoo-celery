@@ -4,8 +4,6 @@
 from odoo import api, fields, models
 from odoo.tools import config
 
-from ..models.celery_task import STATES_TO_CANCEL
-
 
 class RevokeTask(models.TransientModel):
     _name = 'celery.revoke.task'
@@ -13,14 +11,16 @@ class RevokeTask(models.TransientModel):
 
     @api.model
     def _default_task_ids(self):
-        states_to_revoke = self.env['celery.task']._states_to_revoke()
         res = False
         context = self.env.context
+        Task = self.env['celery.task']
+        states_to_revoke = Task._states_to_revoke()
         if (context.get('active_model') == 'celery.task' and
                 context.get('active_ids')):
             task_ids = context['active_ids']
-            res = self.env['celery.task'].search([
+            res = Task.search([
                 ('id', 'in', context['active_ids']),
+                ('pid', '!=', 0),
                 ('state', 'in', states_to_revoke)]).ids
         return res
 

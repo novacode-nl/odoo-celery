@@ -3,8 +3,6 @@
 
 from odoo import api, fields, models
 
-from ..models.celery_task import STATES_TO_CANCEL
-
 
 class CancelTask(models.TransientModel):
     _name = 'celery.cancel.task'
@@ -20,6 +18,7 @@ class CancelTask(models.TransientModel):
             task_ids = context['active_ids']
             res = self.env['celery.task'].search([
                 ('id', 'in', context['active_ids']),
+                ('pid', '=', 0),
                 ('state', 'in', states_to_cancel)]).ids
         return res
 

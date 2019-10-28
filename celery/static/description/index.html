@@ -227,11 +227,14 @@ password = Odoo-User-Password</pre>
 <section class="oe_container">
   <div class="oe_row oe_spaced">
     <h2 class="oe_slogan" style="color:#875A7B;">Changelog</h2>
-    <h4 class="oe_mb16">0.16</h4>
+    <h4 class="oe_mb16">1.0</h4>
     <ul>
       <li>
         Real requeue-ing and revoking/termination of task(s) and its started Odoo serverprocess(es).
         This requires the Odoo server with <a href="https://www.odoo.com/documentation/12.0/reference/cmdline.html#multiprocessing" target="_blank">multiprocessing enabled</a> - the workers setting.
+      </li>
+      <li>
+        This release may break compatibility due to removed constants in Celery Task model and such.
       </li>
     </ul>
     <h4 class="oe_mb16">0.15</h4>

@@ -48,15 +48,6 @@ STATES = [(STATE_PENDING, 'Pending'),
           (STATE_REVOKE, 'Revoke'),
           (STATE_CANCEL, 'Cancel')]
 
-# Set state to Cancel (tasks in scheduled state)
-STATES_TO_CANCEL = [STATE_PENDING, STATE_RETRY, STATE_JAMMED]
-
-# Revoke and terminate (tasks in scheduled or running state).
-STATES_TO_REVOKE = [STATE_PENDING, STATE_STARTED, STATE_RETRY, STATE_RETRYING, STATE_JAMMED]
-
-# Requeue (tasks in scheduled, running and completed state)
-STATES_TO_REQUEUE = [STATE_PENDING, STATE_STARTED, STATE_RETRY, STATE_RETRYING, STATE_FAILURE, STATE_CANCEL, STATE_REVOKE]
-
 # TODO
 # shall be rewritten, see above. Search all occurrences in code.
 STATES_TO_JAMMED = [STATE_STARTED, STATE_RETRY, STATE_RETRYING]
@@ -417,7 +408,10 @@ class CeleryTask(models.Model):
             task.write(vals)
 
     def _states_to_requeue(self):
-        return STATES_TO_REQUEUE
+        if config.get('workers'):
+            return [STATE_PENDING, STATE_STARTED, STATE_RETRY, STATE_RETRYING, STATE_FAILURE, STATE_CANCEL, STATE_REVOKE]
+        else:
+            return [STATE_PENDING, STATE_RETRY, STATE_FAILURE, STATE_CANCEL, STATE_REVOKE]
 
     @api.multi
     def action_requeue(self, always=False):
@@ -456,7 +450,8 @@ class CeleryTask(models.Model):
         return True
 
     def _states_to_cancel(self):
-        return STATES_TO_CANCEL
+        # The wizard and action only allows to tasks to cancel - without a PID (= 0)
+        return [STATE_PENDING, STATE_STARTED, STATE_RETRY, STATE_RETRYING, STATE_JAMMED]
 
     @api.multi
     def action_cancel(self):
@@ -467,7 +462,7 @@ class CeleryTask(models.Model):
             raise UserError('No user found with login: {login}'.format(login=user))
         user_id = user_id[0]['id']
 
-        tasks = self.filtered(lambda r: r.state in self._states_to_cancel())
+        tasks = self.filtered(lambda r: r.state in self._states_to_cancel() and r.pid == 0)
         for task in tasks:
             task.write({
                 'celery_task_id': False,
@@ -496,7 +491,10 @@ class CeleryTask(models.Model):
         return True
 
     def _states_to_revoke(self):
-        return STATES_TO_REVOKE
+        if config.get('workers'):
+            return [STATE_PENDING, STATE_STARTED, STATE_RETRY, STATE_RETRYING, STATE_JAMMED]
+        else:
+            return [STATE_PENDING, STATE_RETRY]
 
     @api.multi
     def action_revoke(self):
@@ -632,14 +630,16 @@ class CeleryTask(models.Model):
 
         if field_pid:
             # Clear PID's because new Odoo worker processes.
-            domain = ['|', ('pid', '!=', 0), ('state', 'in', [STATE_PENDING, STATE_RETRY])]
+            domain = [('pid', '!=', 0)]
             past_running = self.search(domain)
 
+            # TODO: Flag those past_running Tasks as Jammed (upcoming new boolean field).
             if len(past_running) > 0:
                 logger.info('[Celery] Starting Odoo and revoking %s tasks...' % len(past_running))
                 # XXX Commented action_requeue() below, also calls
                 # _workers_revoke(), but seems to late and concurrency
                 # issues arise?  So run it now.
+                past_running.write({'pid': False, 'pg_backend_pid': False, 'celery_task_id': False})
                 self._workers_revoke(past_running)
                 # TODO FIXME causes Odoo concurrency and locking/timeout issues.
                 # past_running.action_requeue(True)
