@@ -96,3 +96,11 @@ class CeleryQueue(models.Model):
     _sql_constraints = [
         ('name_uniq', 'UNIQUE(name)', "Queue already exists!"),
     ]
+
+    @api.model
+    def cron_add_existing_queues(self):
+        query = """
+        INSERT INTO celery_queue (name, active) 
+        SELECT DISTINCT queue, true FROM celery_task WHERE queue NOT IN (SELECT name FROM celery_queue)
+        """
+        self._cr.execute(query)
