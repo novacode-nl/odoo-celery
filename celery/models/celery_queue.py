@@ -87,7 +87,7 @@ class CeleryQueue(models.Model):
     queue_tasks = fields.Integer(string="Total number of tasks in the queue", compute='_compute_stats', store=False, group_operator="avg")
     queue_tasks_pending = fields.Integer(string="Pending tasks in the queue", compute='_compute_stats', store=False, group_operator="avg")
     queue_tasks_24h = fields.Integer(string="Added in the last 24h", compute='_compute_stats', store=False, group_operator="avg")
-    queue_tasks_24h_done = fields.Integer(string="Succeded in the last 24h", compute='_compute_stats', store=False, group_operator="avg")
+    queue_tasks_24h_done = fields.Integer(string="Succeeded in the last 24h", compute='_compute_stats', store=False, group_operator="avg")
     queue_tasks_24h_failed = fields.Integer(string="Failed in the last 24h", compute='_compute_stats', store=False, group_operator="avg")
     queue_percentage = fields.Float(string=" ", compute='_compute_stats', store=False, group_operator="avg")
     queue_tasks_ratio = fields.Float(string="Percentage of total tasks", compute='_compute_stats', store=False, group_operator="avg")

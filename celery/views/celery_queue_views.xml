@@ -35,11 +35,13 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                     <h1><field name="name"/></h1>
                                 </div>
                             </group>
-                            <group name="task_types">
-                                <group colspan="4">
-                                    <field name="task_setting_ids" nolabel="1"/>
-                                </group>
-                            </group>
+                            <notebook>
+                                <page string="Task Settings">
+                                    <group>
+                                        <field name="task_setting_ids" colspan="4" nolabel="1"/>
+                                    </group>
+                                </page>
+                            </notebook>
                         </sheet>
                         <div class="oe_chatter">
                             <field name="message_follower_ids" widget="mail_followers"/>
@@ -54,7 +56,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             <field name="name">celery.queue.kanban</field>
             <field name="model">celery.queue</field>
             <field name="arch" type="xml">
-                <kanban class="o_opportunity_kanban" quick_create="false" create="false" group_create="false">
+                <kanban class="o_opportunity_kanban" group_create="false">
                     <field name="name"/>
                     <field name="task_setting_ids"/>
                     <field name="queue_percentage"/>
@@ -127,7 +129,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             <field name="res_model">celery.queue</field>
             <field name="view_type">form</field>
             <field name="view_mode">kanban,tree,form</field>
-            <field name="context">{'search_default_all': 1, 'compute_queue_stats': True}</field>
+            <field name="context">{'compute_queue_stats': True}</field>
             <field name="view_id" ref="view_celery_queue_kanban"/>
         </record>
     </data>
