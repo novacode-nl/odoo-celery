@@ -17,6 +17,34 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
             <field name="priority">10</field>
             <field eval="False" name="doall" />
         </record>
+
+        <record id="ir_cron_celery_autovacuum_tasks" forcecreate="True" model="ir.cron">
+            <field name="name">Celery: Autovacuum Tasks</field>
+            <field name="model_id" ref="model_celery_task"/>
+            <field name="state">code</field>
+            <field name="code">## Default settings to override with kwargs:
+#
+# days=90 (Delete tasks older then 90 days)
+# hours=0 (Set hours to delete tasks older then timedelta addition of N hours)
+# minutes=0 (Set minutes to delete tasks older then timedelta addition of N minutes)
+# seconds=0 (Set seconds to delete tasks older then timedelta addition of N seconds)
+#
+# success=True (Delete tasks with state=Success)
+# failure=True (Delete tasks with state=Failure)
+# cancel=True (Delete tasks with state=Cancel)
+#
+# batch_size=100 (Delete N records in run/loop)
+model.autovacuum()
+            </field>
+            <field name="active" eval="False"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+            <field name="priority">10</field>
+            <field eval="False" name="doall" />
+        </record>
+
     </data>
     <data noupdate="1">
         <record id="ir_cron_celery_add_used_queues" forcecreate="True" model="ir.cron">
