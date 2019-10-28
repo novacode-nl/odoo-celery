@@ -13,7 +13,7 @@
         'mail'
     ],
     'external_dependencies': {
-        'python': ['celery'],
+        'python': ['celery', 'psutil'],
     },
     'data': [
         'data/ir_cron_data.xml',
