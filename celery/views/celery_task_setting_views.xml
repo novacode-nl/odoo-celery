@@ -47,7 +47,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                             <tree string="Queues" editable="bottom">
                                                 <field name="sequence" widget="handle"/>
                                                 <field name="queue_id" options="{'no_create': True}"/>
-                                                <field name="queue_max_pending_tasks" string="N:" attrs="{'invisible': [('parent.use_first_empty_queue', '!=', True)]}"/>
+                                                <field name="queue_max_pending_tasks" attrs="{'invisible': [('parent.use_first_empty_queue', '!=', True)]}"/>
                                             </tree>
                                         </field>
                                     </group>

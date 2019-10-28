@@ -179,7 +179,7 @@ class CeleryTask(models.Model):
                 if task_setting.use_first_empty_queue:
                     for q in task_setting.task_queue_ids.sorted(key=lambda l: l.sequence):
                         if q.queue_id.active:
-                            if self.search_count([('queue', '=', q.queue.name), ('state', '=', STATE_PENDING)]) <= q.queue_max_pending_tasks:
+                            if self.search_count([('queue', '=', q.queue_id.name), ('state', '=', STATE_PENDING)]) <= q.queue_max_pending_tasks:
                                 # use the first queue that satisfies the criteria of N or less pending tasks
                                 task_queue = q.queue_id.name
                                 break
