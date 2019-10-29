@@ -70,8 +70,8 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                         <t t-name="kanban-box">
                             <div t-attf-class="#{kanban_color(record.color.raw_value)} oe_kanban_global_click">
                                 <div class="o_dropdown_kanban dropdown">
-                                    <a class="dropdown-toggle btn" data-toggle="dropdown" href="#" >
-                                        <span class="fa fa-bars fa-lg"/>
+                                    <a class="dropdown-toggle btn" role="button" data-toggle="dropdown" href="#" >
+                                        <span class="fa fa-bars fa-lg" title="bars"/>
                                     </a>
                                     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                                         <li><ul class="oe_kanban_colorpicker" data-field="color"/></li>
