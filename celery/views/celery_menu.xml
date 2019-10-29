@@ -30,5 +30,10 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                   parent="celery.menu_celery_setting_root"
                   action="action_celery_task_setting"
                   sequence="30"/>
+        <menuitem id="menu_celery_queues"
+                  name="Queues"
+                  parent="celery.menu_celery_setting_root"
+                  action="action_celery_queue"
+                  sequence="40"/>
      </data>
 </odoo>

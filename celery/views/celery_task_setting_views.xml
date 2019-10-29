@@ -23,7 +23,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
         <record id="view_celery_task_setting_form" model="ir.ui.view">
             <field name="name">celery.task.setting.form</field>
             <field name="model">celery.task.setting</field>
-	    <field name="type">form</field>
+	        <field name="type">form</field>
             <field name="arch" type="xml">
                 <form string="Task Setting">
                     <sheet>
@@ -32,26 +32,44 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                 <field name="active" widget="boolean_button" options="{'terminology': 'archive'}"/>
                             </button>
                         </div>
-                        <group>
+                        <group name="model_method_main">
                             <group colspan="4">
                                 <field name="model"/>
                                 <field name="method"/>
                             </group>
                         </group>
-                        <group name="jammed">
-                            <group colspan="2">
-                                <field name="handle_jammed"/>
-                            </group>
-                            <group colspan="2">
-                                <p>A task seems Jammed when it's still in state <strong>Started</strong> or <strong>Retry</strong>, after certain elapsed seconds.</p>
-                            </group>
-                            <group attrs="{'invisible': [('handle_jammed', '=', False)]}">
-                                <field name="jammed_after_seconds"/>
-                            </group>
-                            <group attrs="{'invisible': [('handle_jammed', '=', False)]}">
-                                <field name="handle_jammed_by_cron"/>
-                            </group>
-                        </group>
+                        <notebook name="task_settings_notebook">
+                            <page string="Queues" name="tab_queues">
+                                <group name="queues">
+                                    <group colspan="4">
+                                        <field name="use_first_empty_queue"/>
+                                        <field name="task_queue_ids" colspan="4" nolabel="1">
+                                            <tree string="Queues" editable="bottom">
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="queue_id" options="{'no_create': True}"/>
+                                                <field name="queue_max_pending_tasks" attrs="{'invisible': [('parent.use_first_empty_queue', '!=', True)]}"/>
+                                            </tree>
+                                        </field>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Jammed" name="tab_jammed">
+                                <group name="jammed">
+                                    <group colspan="2">
+                                        <field name="handle_jammed"/>
+                                    </group>
+                                    <group colspan="2">
+                                        <p>A task seems Jammed when it's still in state <strong>Started</strong> or <strong>Retry</strong>, after certain elapsed seconds.</p>
+                                    </group>
+                                    <group attrs="{'invisible': [('handle_jammed', '=', False)]}">
+                                        <field name="jammed_after_seconds"/>
+                                    </group>
+                                    <group attrs="{'invisible': [('handle_jammed', '=', False)]}">
+                                        <field name="handle_jammed_by_cron"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
                     </sheet>
                     <div class="oe_chatter">
                         <field name="message_follower_ids" widget="mail_followers"/>

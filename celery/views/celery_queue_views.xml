@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<!-- Copyright Nova Code (http://www.novacode.nl)
+License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
+
+<odoo>
+    <data>
+        <record id="view_celery_queue_tree" model="ir.ui.view">
+            <field name="name">celery.queue.tree</field>
+            <field name="model">celery.queue</field>
+	        <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Celery Queue" decoration-muted="(not active)">
+                    <field name="name"/>
+                    <field name="active"/>
+                    <field name="task_setting_ids"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_celery_queue_form" model="ir.ui.view">
+            <field name="name">celery.queue.form</field>
+            <field name="model">celery.queue</field>
+            <field name="type">form</field>
+                <field name="arch" type="xml">
+                    <form string="Celery Queue">
+                        <sheet>
+                            <div class="oe_button_box" name="button_box">
+                                <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                                    <field name="active" widget="boolean_button" options="{'terminology': 'archive'}"/>
+                                </button>
+                            </div>
+                            <group>
+                                <div class="oe_title">
+                                    <label for="name" string="Queue Name" class="oe_edit_only"/>
+                                    <h1><field name="name"/></h1>
+                                </div>
+                            </group>
+                            <notebook>
+                                <page string="Task Settings">
+                                    <group>
+                                        <field name="task_setting_ids" colspan="4" nolabel="1"/>
+                                    </group>
+                                </page>
+                            </notebook>
+                        </sheet>
+                        <div class="oe_chatter">
+                            <field name="message_follower_ids" widget="mail_followers"/>
+                            <field name="message_ids" widget="mail_thread"/>
+                        </div>
+                    </form>
+                </field>
+        </record>
+
+        <!-- kanban with stats overview-->
+        <record id="view_celery_queue_kanban" model="ir.ui.view">
+            <field name="name">celery.queue.kanban</field>
+            <field name="model">celery.queue</field>
+            <field name="arch" type="xml">
+                <kanban class="o_opportunity_kanban" group_create="false">
+                    <field name="name"/>
+                    <field name="task_setting_ids"/>
+                    <field name="queue_percentage"/>
+                    <field name="queue_tasks"/>
+                    <field name="queue_tasks_ratio"/>
+                    <field name="queue_tasks_24h"/>
+                    <field name="queue_tasks_24h_done"/>
+                    <field name="queue_tasks_24h_failed"/>
+                    <field name="color"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="#{kanban_color(record.color.raw_value)} oe_kanban_global_click">
+                                <div class="o_dropdown_kanban dropdown">
+                                    <a class="dropdown-toggle btn" role="button" data-toggle="dropdown" href="#" >
+                                        <span class="fa fa-bars fa-lg" title="bars"/>
+                                    </a>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                        <li><ul class="oe_kanban_colorpicker" data-field="color"/></li>
+                                    </ul>
+                                </div>
+                                <div class="oe_kanban_content">
+                                     <div>
+                                        <h1><strong><field name="name"/></strong></h1>
+                                    </div>
+                                    <div>
+                                        <field name="queue_percentage" string=" " widget="gauge"  options="{'label_field': 'name'}"/>
+                                    </div>
+                                   
+                                    <div>
+                                        Total tasks: <strong><field name="queue_tasks"/></strong> (<strong><field name="queue_tasks_ratio"/></strong> percent of all tasks)
+                                    </div>
+                                    <div>
+                                        <strong>Pending tasks: <field name="queue_tasks_pending"/></strong>
+                                    </div>
+                                    <div>
+                                        Added in the last 24h: <strong><field name="queue_tasks_24h"/></strong>
+                                    </div>
+                                    <div>
+                                        Succeded in the last 24h: <strong><field name="queue_tasks_24h_done"/></strong>
+                                    </div>
+                                    <div>
+                                        Failed in the last 24h: <strong><field name="queue_tasks_24h_failed"/></strong>
+                                    </div>
+                                    <div>
+                                        <field name="task_setting_ids"/>
+                                    </div>
+                                </div>
+                                <div class="oe_clear"/>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="celery_queue_view_search" model="ir.ui.view">
+            <field name="model">celery.queue</field>
+            <field name="arch" type="xml">
+                <search string="Celery Queues">
+                    <field name="name" string="Queue"/>
+                    <field name="active"/>
+                    <separator/>
+                    <filter string="All" name="all" domain="['|', ('active', '=', False), ('active', '=', True)]" />
+                </search>
+            </field>
+        </record>
+
+        <record id="action_celery_queue" model="ir.actions.act_window">
+            <field name="name">Celery Queues</field>
+            <field name="res_model">celery.queue</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="context">{'compute_queue_stats': True}</field>
+            <field name="view_id" ref="view_celery_queue_kanban"/>
+        </record>
+    </data>
+</odoo>
