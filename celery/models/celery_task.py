@@ -2,12 +2,13 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
 import copy
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import json
 import logging
 import os
 import traceback
 import uuid
+import pytz
 
 from odoo import api, fields, models, registry, _
 from odoo.addons.base_sparse_field.models.fields import Serialized
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 TASK_NOT_FOUND = 'NOT_FOUND'
 
 STATE_PENDING = 'PENDING'
+STATE_SCHEDULED = 'SCHEDULED'
 STATE_STARTED = 'STARTED'
 STATE_RETRY = 'RETRY'
 STATE_RETRYING = 'RETRYING'
@@ -31,6 +33,7 @@ STATE_JAMMED = 'JAMMED'
 STATE_CANCEL = 'CANCEL'
 
 STATES = [(STATE_PENDING, 'Pending'),
+          (STATE_SCHEDULED, 'Scheduled'),
           (STATE_STARTED, 'Started'),
           (STATE_RETRY, 'Retry'),
           (STATE_RETRYING, 'Retrying'),
@@ -40,8 +43,8 @@ STATES = [(STATE_PENDING, 'Pending'),
           (STATE_CANCEL, 'Cancel')]
 
 STATES_TO_JAMMED = [STATE_STARTED, STATE_RETRY, STATE_RETRYING]
-STATES_TO_CANCEL = [STATE_PENDING, STATE_JAMMED]
-STATES_TO_REQUEUE = [STATE_PENDING, STATE_RETRY, STATE_JAMMED, STATE_FAILURE]
+STATES_TO_CANCEL = [STATE_PENDING, STATE_SCHEDULED, STATE_JAMMED]
+STATES_TO_REQUEUE = [STATE_PENDING, STATE_SCHEDULED, STATE_RETRY, STATE_JAMMED, STATE_FAILURE]
 
 
 CELERY_PARAMS = [
@@ -85,6 +88,7 @@ class CeleryTask(models.Model):
     started_date = fields.Datetime(string='Start Time', readonly=True)
     # TODO REFACTOR compute and store, by @api.depends (replace all ORM writes)
     state_date = fields.Datetime(string='State Time', index=True, readonly=True)
+    scheduled_date = fields.Datetime(string="Scheduled Time", readonly=True)
     result = fields.Text(string='Result', readonly=True)
     exc_info = fields.Text(string='Exception Info', readonly=True)
     state = fields.Selection(
@@ -97,6 +101,7 @@ class CeleryTask(models.Model):
         track_visibility='onchange',
         help="""\
         - PENDING: The task is waiting for execution.
+        - SCHEDULED: The task is pending and scheduled to be run within a specified timeframe.
         - STARTED: The task has been started.
         - RETRY: The task is to be retried, possibly because of failure.
         - RETRYING: The task is executing a retry, possibly because of failure.
@@ -149,6 +154,61 @@ class CeleryTask(models.Model):
         super(CeleryTask, self).unlink()
 
     @api.model
+    def check_schedule_needed(self, t_setting):
+        # returns False if the task can be executed right now (current moment fits the scheduling criteria)
+        # returns a datetime value (in UTC) for when it can be executed next (current moment does not fit the scheduling criteria)
+        def get_next_day_of_week_diff(current_day_of_week, allowed_days):
+            next_allowed_day_of_week = list(filter(lambda day: day > current_day_of_week, allowed_days))
+            if next_allowed_day_of_week:
+                # next day is this week
+                return next_allowed_day_of_week[0] - current_day_of_week
+            else:
+                # next day is next week
+                return 7 - current_day_of_week + list(filter(lambda day: day < current_day_of_week, allowed_days))[0]
+
+        def get_next_hour_diff(current_hour, hour_from, hour_to, current_day_of_week, allowed_days):
+            if current_hour <= hour_from:
+                if not allowed_days:
+                    return hour_from - current_hour
+                else:
+                    return (hour_from - current_hour) + (get_next_day_of_week_diff(current_day_of_week, allowed_days) * 24)
+            else:
+                if not allowed_days:
+                    return (24 - current_hour + hour_from)
+                else:
+                    return (24 - current_hour + hour_from) + (get_next_day_of_week_diff(current_day_of_week, allowed_days) * 24)
+
+        scheduled_date = False
+        user_tz = self.env['res.users'].sudo().browse(self.env.uid).tz
+        tz = pytz.timezone(user_tz) if user_tz else pytz.utc
+        current_day_of_week = datetime.now(tz=tz).weekday() + 1  # adding 1 to avoid comparisons to 0
+        current_hour = (datetime.now(tz=tz).hour + (datetime.now(tz=tz).minute / 60.0) + (datetime.now(tz=tz).second / 3600.0)) or 0
+        allowed_days = list(filter(None, [1 if t_setting.schedule_mondays else False,
+                                            2 if t_setting.schedule_tuesdays else False,
+                                            3 if t_setting.schedule_wednesdays else False,
+                                            4 if t_setting.schedule_thursdays else False,
+                                            5 if t_setting.schedule_fridays else False,
+                                            6 if t_setting.schedule_saturdays else False,
+                                            7 if t_setting.schedule_sundays else False]))
+        weekday_scheduling_set = any([t_setting.schedule_mondays, t_setting.schedule_tuesdays, 
+                                      t_setting.schedule_wednesdays, t_setting.schedule_thursdays,
+                                      t_setting.schedule_fridays, t_setting.schedule_saturdays, t_setting.schedule_sundays])
+        hour_scheduling_set = (t_setting.schedule_hours_from + t_setting.schedule_hours_to) > 0  # hourly schedule is set if hours set are different from 0
+        out_of_allowed_day_range = (current_day_of_week not in allowed_days)
+        out_of_allowed_hour_range = (current_hour < t_setting.schedule_hours_from or current_hour > t_setting.schedule_hours_to)
+        if weekday_scheduling_set and out_of_allowed_day_range:
+            hour_diff = get_next_hour_diff(0, t_setting.schedule_hours_from, t_setting.schedule_hours_to, current_day_of_week, allowed_days)
+            t = datetime.now(tz=tz)
+            scheduled_date = fields.Datetime.to_string((t - timedelta(seconds=t.second + (t.minute * 60) + (t.hour * 3600)) + timedelta(hours=hour_diff)).astimezone(pytz.utc))
+        elif weekday_scheduling_set and not out_of_allowed_day_range and hour_scheduling_set and out_of_allowed_hour_range:
+            hour_diff = get_next_hour_diff(current_hour, t_setting.schedule_hours_from, t_setting.schedule_hours_to, current_day_of_week, allowed_days)
+            scheduled_date = fields.Datetime.to_string((datetime.now(tz=tz) + timedelta(hours=hour_diff)).astimezone(pytz.utc))
+        elif not weekday_scheduling_set and hour_scheduling_set and out_of_allowed_hour_range:
+            hour_diff = get_next_hour_diff(current_hour, t_setting.schedule_hours_from, t_setting.schedule_hours_to, current_day_of_week, allowed_days)
+            scheduled_date = fields.Datetime.to_string((datetime.now(tz=tz) + timedelta(hours=hour_diff)).astimezone(pytz.utc))
+        return scheduled_date
+
+    @api.model
     def call_task(self, model, method, **kwargs):
         """ Call Task dispatch to the Celery interface. """
 
@@ -169,12 +229,19 @@ class CeleryTask(models.Model):
             # The task (method/implementation) kwargs, needed in the rpc_run_task model/method.
             'kwargs': kwargs}
 
+        scheduled_date = False
         # queue selection
         default_queue = kwargs.get('celery', False) and kwargs.get('celery').get('queue', '') or 'celery'
         task_queue = False
         task_setting_domain = [('model', '=', model), ('method', '=', method), ('active', '=', True)]
-        task_setting = self.env['celery.task.setting'].search(task_setting_domain)
+        task_setting = self.env['celery.task.setting'].search(task_setting_domain, limit=1)
         if task_setting:
+            # check if the task needs to be scheduled in a specified timeframe
+            if task_setting.schedule:
+                scheduled_date = self.check_schedule_needed(task_setting)
+                if scheduled_date:
+                    vals.update({'state': STATE_SCHEDULED, 'scheduled_date': scheduled_date})
+
             if task_setting.task_queue_ids:
                 if task_setting.use_first_empty_queue:
                     for q in task_setting.task_queue_ids.sorted(key=lambda l: l.sequence):
@@ -217,7 +284,8 @@ class CeleryTask(models.Model):
             except Exception as e:
                 logger.error(_('UNKNOWN ERROR FROM call_task: %s') % (e))
                 cr.rollback()
-        self._celery_call_task(user_id, task_uuid, model, method, kwargs)
+        if not scheduled_date:  # if the task is not scheduled for a later time
+            self._celery_call_task(user_id, task_uuid, model, method, kwargs)
 
     @api.model
     def _celery_call_task(self, user_id, uuid, model, method, kwargs):
@@ -458,6 +526,13 @@ class CeleryTask(models.Model):
         for t in tasks:
             if t.handle_jammed and t.handle_jammed_by_cron:
                 t.task_id.action_jammed()
+
+    @api.model
+    def cron_handle_scheduled_tasks(self):
+        domain = [('state', '=', STATE_SCHEDULED), ('scheduled_date', '<=', fields.Datetime.now())]
+        tasks = self.search(domain)
+        for t in tasks:
+            t.action_requeue()
 
     @api.model
     def autovacuum(self, **kwargs):
