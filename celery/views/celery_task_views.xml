@@ -19,6 +19,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="create_date" readonly="1"/>
                     <field name="started_date"/>
                     <field name="state_date"/>
+                    <field name="scheduled_date"/>
                     <field name="state"/>
 		</tree>
 	    </field>
@@ -34,7 +35,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                         <button
                             name="action_open_related_record" type="object" string="Related"
                             attrs="{'invisible': [('res_model', '=', False)]}"/>
-                        <field name="state" widget="statusbar" statusbar_visible="PENDING,STARTED,RETRY,RETRYING,FAILURE,SUCCESS"/>
+                        <field name="state" widget="statusbar" statusbar_visible="PENDING,STARTED,SCHEDULED,RETRY,RETRYING,FAILURE,SUCCESS"/>
                     </header>
                     <sheet>
                         <!-- fa-retweet (icon): because fontawesome fa-refresh isn't available in Odoo yet. -->
@@ -54,6 +55,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             <group>
                                 <field name="queue"/>
                                 <field name="create_date"/>
+                                <field name="scheduled_date"/>
                                 <field name="started_date"/>
                                 <field name="state_date"/>
                                 <field name="user_id"/>
@@ -129,6 +131,8 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="queue"/>
                     <filter name="pending" string="Pending"
                             domain="[('state', '=', 'PENDING')]"/>
+                    <filter name="scheduled" string="Scheduled"
+                            domain="[('state', '=', 'SCHEDULED')]"/>
                     <filter name="started" string="Started"
                             domain="[('state', '=', 'STARTED')]"/>
                     <filter name="retry" string="Retry"
