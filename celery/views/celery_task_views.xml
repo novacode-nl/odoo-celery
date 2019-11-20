@@ -10,7 +10,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 	    <field name="type">tree</field>
 	    <field name="arch" type="xml">
 		<tree string="Celery Tasks" create="false"
-                      decoration-muted="state in ('SUCCESS', 'CANCEL')" decoration-danger="state == 'FAILURE'">
+                      decoration-muted="state in ('SUCCESS', 'CANCEL')" decoration-danger="state == 'FAILURE'" decoration-info="state == 'SCHEDULED'">
 		    <field name="uuid"/>
                     <field name="model"/>
                     <field name="method"/>
@@ -147,6 +147,16 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             domain="[('state', '=', 'JAMMED')]"/>
                     <filter name="cancel" string="Cancel"
                             domain="[('state', '=', 'CANCEL')]"/>
+                    <separator/>
+                    <filter name="today" string="Added Today" domain="[('create_date','&gt;', (context_today() - datetime.timedelta(days=1)).strftime('%%Y-%%m-%%d') )]"/>
+                    <filter name="this_week" string="Added In The Last 7 Days" domain="[('create_date','&gt;', (context_today() - datetime.timedelta(days=7)).strftime('%%Y-%%m-%%d') )]"/>
+                    <filter name="this_month" string="Added In The Last 30 Days" domain="[('create_date','&gt;', (context_today() - datetime.timedelta(days=30)).strftime('%%Y-%%m-%%d') )]"/>
+                    <filter name="this_year" string="Added This Year" domain="[('create_date','&lt;=', time.strftime('%%Y-12-31')),('create_date','&gt;=',time.strftime('%%Y-01-01'))]"/>
+                    <separator/>
+                    <filter name="scheduled_today" string="Scheduled Today" domain="[('state','=','SCHEDULED'),('scheduled_date','&gt;=', datetime.datetime.now()),('scheduled_date','&lt;=',(context_today() + datetime.timedelta(days=1)).strftime('%%Y-%%m-%%d') )]"/>
+                    <filter name="scheduled_next_7days" string="Scheduled In the Next 7 days" domain="[('state','=','SCHEDULED'),('scheduled_date','&gt;=', datetime.datetime.now()),('scheduled_date','&lt;=',(context_today() + datetime.timedelta(days=7)).strftime('%%Y-%%m-%%d') )]"/>
+                    <filter name="scheduled_in_the_past" string="Scheduled Past Today" domain="[('state','=','SCHEDULED'),('scheduled_date','&lt;=', datetime.datetime.now())]"/>
+                    <separator/>
 		    <group expand="0" string="Group By">
 	                <filter string="Model" name="model" domain="[]" context="{'group_by': 'model'}"/>
 	                <filter string="Task/method" name="method" domain="[]" context="{'group_by': 'method'}"/>
