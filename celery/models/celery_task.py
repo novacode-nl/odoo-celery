@@ -168,7 +168,7 @@ class CeleryTask(models.Model):
 
         def get_next_hour_diff(current_hour, hour_from, hour_to, current_day_of_week, allowed_days):
             if current_hour <= hour_from:
-                if not allowed_days:
+                if not allowed_days or list(filter(lambda day: day == current_day_of_week, allowed_days)):
                     return hour_from - current_hour
                 else:
                     return (hour_from - current_hour) + (get_next_day_of_week_diff(current_day_of_week, allowed_days) * 24)
