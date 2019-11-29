@@ -199,13 +199,13 @@ class CeleryTask(models.Model):
         if weekday_scheduling_set and out_of_allowed_day_range:
             hour_diff = get_next_hour_diff(0, t_setting.schedule_hours_from, t_setting.schedule_hours_to, current_day_of_week, allowed_days)
             t = datetime.now(tz=tz)
-            scheduled_date = fields.Datetime.to_string((t - timedelta(seconds=t.second + (t.minute * 60) + (t.hour * 3600)) + timedelta(hours=hour_diff)).astimezone(pytz.utc))
+            scheduled_date = (t - timedelta(seconds=t.second + (t.minute * 60) + (t.hour * 3600)) + timedelta(hours=hour_diff)).astimezone(pytz.utc)
         elif weekday_scheduling_set and not out_of_allowed_day_range and hour_scheduling_set and out_of_allowed_hour_range:
             hour_diff = get_next_hour_diff(current_hour, t_setting.schedule_hours_from, t_setting.schedule_hours_to, current_day_of_week, allowed_days)
-            scheduled_date = fields.Datetime.to_string((datetime.now(tz=tz) + timedelta(hours=hour_diff)).astimezone(pytz.utc))
+            scheduled_date = (datetime.now(tz=tz) + timedelta(hours=hour_diff)).astimezone(pytz.utc)
         elif not weekday_scheduling_set and hour_scheduling_set and out_of_allowed_hour_range:
             hour_diff = get_next_hour_diff(current_hour, t_setting.schedule_hours_from, t_setting.schedule_hours_to, current_day_of_week, allowed_days)
-            scheduled_date = fields.Datetime.to_string((datetime.now(tz=tz) + timedelta(hours=hour_diff)).astimezone(pytz.utc))
+            scheduled_date = (datetime.now(tz=tz) + timedelta(hours=hour_diff)).astimezone(pytz.utc)
         return scheduled_date
 
     @api.model
