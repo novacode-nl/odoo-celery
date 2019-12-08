@@ -15,6 +15,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="handle_jammed"/>
                     <field name="jammed_after_seconds"/>
                     <field name="handle_jammed_by_cron"/>
+                    <field name="schedule"/>
                     <field name="active"/>
                 </tree>
             </field>
@@ -66,6 +67,28 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                     </group>
                                     <group attrs="{'invisible': [('handle_jammed', '=', False)]}">
                                         <field name="handle_jammed_by_cron"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Scheduling" name="tab_scheduling">
+                                <group name="scheduling">
+                                    <group colspan="4">
+                                        <field name="schedule"/>
+                                    </group>
+                                    <group colspan="4" cols="4">
+                                        <group attrs="{'invisible': [('schedule', '=', False)]}" colspan="2" cols="2" string="Days:">
+                                            <field name="schedule_mondays" string="Monday"/>
+                                            <field name="schedule_tuesdays" string="Tuesday"/>
+                                            <field name="schedule_wednesdays" string="Wednesday"/>
+                                            <field name="schedule_thursdays" string="Thursday"/>
+                                            <field name="schedule_fridays" string="Friday"/>
+                                            <field name="schedule_saturdays" string="Saturday"/>
+                                            <field name="schedule_sundays" string="Sunday"/>
+                                        </group>
+                                        <group attrs="{'invisible': [('schedule', '=', False)]}" colspan="2" cols="2" string="Hours:">
+                                            <field name="schedule_hours_from" string="From" widget="float_time"/>
+                                            <field name="schedule_hours_to" string="To" widget="float_time"/>
+                                        </group>
                                     </group>
                                 </group>
                             </page>

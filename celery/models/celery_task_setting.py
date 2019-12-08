@@ -29,12 +29,30 @@ class CeleryTaskSetting(models.Model):
     )
     use_first_empty_queue = fields.Boolean(string="Use the first queue with N or less pending tasks", default=True)
     active = fields.Boolean(string='Active', default=True, track_visibility='onchange')
+    
+    schedule = fields.Boolean(string="Schedule?", default=False)
+    schedule_mondays = fields.Boolean(string="Schedule on Mondays", default=False)
+    schedule_tuesdays = fields.Boolean(string="Schedule on Tuesdays", default=False)
+    schedule_wednesdays = fields.Boolean(string="Schedule on Wednesdays", default=False)
+    schedule_thursdays = fields.Boolean(string="Schedule on Thursdays", default=False)
+    schedule_fridays = fields.Boolean(string="Schedule on Fridays", default=False)
+    schedule_saturdays = fields.Boolean(string="Schedule on Saturdays", default=False)
+    schedule_sundays = fields.Boolean(string="Schedule on Sundays", default=False)
+    schedule_hours_from = fields.Float(string='Schedule hours from', default=0.0)
+    schedule_hours_to = fields.Float(string='Schedule hours to', default=0.0)
 
     @api.constrains('model', 'method')
     def _check_model_method_unique(self):
         count = self.search_count([('model', '=', self.model), ('method', '=', self.method)])
         if count > 1:
             raise ValidationError(_('Combination of Model and Method already exists!'))
+
+    @api.constrains('schedule_hours_from', 'schedule_hours_to')
+    def _check_hour_range(self):
+        if self.schedule_hours_from > self.schedule_hours_to:
+            raise ValidationError(_('Only same-day hourly range is allowed (00-24)!'))
+        if (self.schedule_hours_from < 0 or self.schedule_hours_from > 24) or (self.schedule_hours_to < 0 or self.schedule_hours_to > 24):
+            raise ValidationError(_('00-24 only!'))
 
     @api.depends('model', 'method')
     def _compute_name(self):
