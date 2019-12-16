@@ -274,18 +274,35 @@ class CeleryTask(models.Model):
             celery_task_vals = copy.copy(kwargs.get('celery_task_vals'))
             vals.update(celery_task_vals)
 
-        with registry(self._cr.dbname).cursor() as cr:
-            env = api.Environment(cr, user_id, {})
-            try:
-                task = self.with_env(env).create(vals)
-            except CeleryCallTaskException as e:
-                logger.error(_('ERROR FROM call_task %s: %s') % (task_uuid, e))
-                cr.rollback()
-            except Exception as e:
-                logger.error(_('UNKNOWN ERROR FROM call_task: %s') % (e))
-                cr.rollback()
-        if not scheduled_date:  # if the task is not scheduled for a later time
-            self._celery_call_task(user_id, task_uuid, model, method, kwargs)
+        def create_and_call_task(obj, task_uuid, vals):
+            with registry(obj._cr.dbname).cursor() as cr:
+                env = api.Environment(cr, user_id, {})
+                try:
+                    task = obj.with_env(env).create(vals)
+                except CeleryCallTaskException as e:
+                    logger.error(_('ERROR FROM call_task %s: %s') % (task_uuid, e))
+                    cr.rollback()
+                except Exception as e:
+                    logger.error(_('UNKNOWN ERROR FROM call_task: %s') % (e))
+                    cr.rollback()
+            if not scheduled_date:  # if the task is not scheduled for a later time
+                obj._celery_call_task(user_id, task_uuid, model, method, kwargs)
+
+        if kwargs.get('after_commit'):
+            # Possibility to create (ORM) and call task (send to MQ)
+            # after the current transaction has been committed. This
+            # option can be used to avoid undesired side effects due
+            # to the current/main transaction isn't committed
+            # yet. Especially if you need to ensure data from the main
+            # transaction has been committed to use in the task.
+            #
+            # IMPORTANT: Use wisely and ensure idempotency of the task
+            # - Because the main transaction could fail and encounter
+            # a rollback, while the task could still be send to the
+            # Celery MQ.
+            self._cr.after('commit', lambda: create_and_call_task(self, task_uuid, vals))
+        else:
+            create_and_call_task(self, task_uuid, vals)
 
     @api.model
     def _celery_call_task(self, user_id, uuid, model, method, kwargs):

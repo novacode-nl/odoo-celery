@@ -12,6 +12,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="name"/>
                     <field name="lines"/>
                     <button name="action_task_with_reference" type="object" string="Task with Reference"/>
+                    <button name="action_task_after_commit" type="object" string="Task after_commit=True"/>
                     <button name="action_task_with_error" type="object" string="Task with Error/Failure"/>
                     <button name="action_task_queue_default" type="object" string="Task queue=default"/>
                     <button name="action_task_queue_high" type="object" string="Task queue=high"/>
@@ -32,6 +33,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             <h1><field name="name" nolabel="1"/></h1>
                         </div>
                         <button name="action_task_with_reference" type="object" string="Task with Reference"/>
+                        <button name="action_task_after_commit" type="object" string="Task after_commit=True"/>
                         <button name="action_task_with_error" type="object" string="Task with Error/Failure"/>
                         <button name="action_task_queue_default" type="object" string="Task default"/>
                         <button name="action_task_queue_high" type="object" string="Task queue=high"/>
@@ -53,7 +55,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
         </record>
 
         <record id="action_celery_example" model="ir.actions.act_window">
-            <field name="name">Celery Example</field>
+            <field name="name">Celery Example Tasks</field>
             <field name="res_model">celery.example</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
@@ -62,7 +64,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
         
         <menuitem
             id="menu_celery_example"
-            name="Example Task"
+            name="Example Tasks"
             parent="celery.menu_celery_root"
             sequence="900"
             action="action_celery_example"/>
