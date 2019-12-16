@@ -126,6 +126,29 @@ celery = {
       </tbody>
     </table>
   </div>
+
+  <div class="oe_row oe_spaced">
+    <h4 style="border-bottom: 1px solid;">Extra Options</h4>
+    <p>Extra options are optional (not required).</p>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Option</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>after_commit = True</code></td>
+          <td>
+            <p>Default: <code>after_commit=False</code></p>
+            <p>If <code>after_commit=True</code>, then the create (ORM) and call task (send to MQ) shall occur after the current transaction has been committed.</p>
+            <p>This option can be used to avoid undesired side effects due to the current/main transaction isn't committed yet. Especially if you need to ensure data from the main transaction has been committed to use in the task.</p>
+            <p><strong>IMPORTANT:</strong> Use wisely and ensure idempotency of the task - Because the main transaction could fail and encounter a rollback, while the task could still be send to the Celery MQ.</p>
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+    </table>
+  </div>
 </section>
 
 <section class="oe_container oe_dark">
@@ -227,6 +250,10 @@ password = Odoo-User-Password</pre>
 <section class="oe_container">
   <div class="oe_row oe_spaced">
     <h2 class="oe_slogan" style="color:#875A7B;">Changelog</h2>
+    <h4 class="oe_mb16">0.18</h4>
+    <ul>
+      <li>Possibility to create and call task after the current transaction has been committed - kwargs: <code>after_commit=True</code>.
+    </ul>
     <h4 class="oe_mb16">0.17</h4>
     <ul>
       <li>Task scheduling added - being able to schedule tasks in a specified time interval or certain day(s) of the week.</li>
