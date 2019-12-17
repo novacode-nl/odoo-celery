@@ -13,6 +13,7 @@ import pytz
 from odoo import api, fields, models, registry, _
 from odoo.addons.base_sparse_field.models.fields import Serialized
 from odoo.exceptions import UserError
+from odoo.modules import registry as model_registry
 from odoo.tools import config
 
 from ..odoo import call_task, TASK_DEFAULT_QUEUE
@@ -275,28 +276,42 @@ class CeleryTask(models.Model):
             celery_task_vals = copy.copy(kwargs.get('celery_task_vals'))
             vals.update(celery_task_vals)
 
-        def create_and_call_task(obj, task_uuid, vals):
-            with registry(obj._cr.dbname).cursor() as cr:
+        # Set transaction strategy and apply call_task
+        transaction_strategy = self._transaction_strategy(task_setting, kwargs)
+        logger.debug('call_task - transaction strategy: %s' % transaction_strategy)
+        dbname = self._cr.dbname
+        vals['transaction_strategy'] = transaction_strategy
+
+        def apply_call_task(vals):
+            # Closure uses several variables from enslosing scope.
+            db_registry = model_registry.Registry.new(dbname)
+            call_task = False
+            with api.Environment.manage(), db_registry.cursor() as cr:
                 env = api.Environment(cr, user_id, {})
+                Task = env['celery.task']
                 try:
-                    task = obj.with_env(env).create(vals)
+                    task = Task.create(vals)
+                    call_task = True
                 except CeleryCallTaskException as e:
                     logger.error(_('ERROR FROM call_task %s: %s') % (task_uuid, e))
                     cr.rollback()
+                    call_task = False
                 except Exception as e:
                     logger.error(_('UNKNOWN ERROR FROM call_task: %s') % (e))
                     cr.rollback()
-            if not scheduled_date:  # if the task is not scheduled for a later time
-                obj._celery_call_task(user_id, task_uuid, model, method, kwargs)
+                    call_task = False
 
-        transaction_strategy = self._transaction_strategy(task_setting, kwargs)
-        logger.debug('call_task - transaction strategy: %s' % transaction_strategy)
-        vals['transaction_strategy'] = transaction_strategy
+            if call_task:
+                with api.Environment.manage(), db_registry.cursor() as cr:
+                    env = api.Environment(cr, user_id, {})
+                    Task = env['celery.task']
+                    if not scheduled_date:  # if the task is not scheduled for a later time
+                        Task._celery_call_task(user_id, task_uuid, model, method, kwargs)
 
         if transaction_strategy == 'immediate':
-            create_and_call_task(self, task_uuid, vals)
+            apply_call_task(vals)
         else:
-            self._cr.after('commit', lambda: create_and_call_task(self, task_uuid, vals))
+            self._cr.after('commit', lambda: apply_call_task(vals))
 
     def _transaction_strategies(self):
         transaction_strategies = self.env['celery.task.setting']._fields['transaction_strategy'].selection

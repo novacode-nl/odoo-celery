@@ -7,5 +7,18 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
         <record id="celery_example" model="celery.example">
             <field name="name">Example Task</field>
         </record>
+
+        <record id="ir_cron_schedule_example" forcecreate="True" model="ir.cron">
+            <field name="name">Celery Example: Schedule example</field>
+            <field name="model_id" ref="model_celery_example"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_schedule_example()</field>
+            <field name="active" eval="False"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+            <field eval="False" name="doall"/>
+        </record>
     </data>
 </odoo>
