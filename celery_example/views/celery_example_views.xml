@@ -12,7 +12,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="name"/>
                     <field name="lines"/>
                     <button name="action_task_with_reference" type="object" string="Task with Reference"/>
-                    <button name="action_task_after_commit" type="object" string="Task after_commit=True"/>
+                    <button name="action_task_immediate" type="object" string="Task transaction strategy=immediate"/>
                     <button name="action_task_with_error" type="object" string="Task with Error/Failure"/>
                     <button name="action_task_queue_default" type="object" string="Task queue=default"/>
                     <button name="action_task_queue_high" type="object" string="Task queue=high"/>
@@ -33,7 +33,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             <h1><field name="name" nolabel="1"/></h1>
                         </div>
                         <button name="action_task_with_reference" type="object" string="Task with Reference"/>
-                        <button name="action_task_after_commit" type="object" string="Task after_commit=True"/>
+                        <button name="action_task_immediate" type="object" string="Task transaction strategy=immediate"/>
                         <button name="action_task_with_error" type="object" string="Task with Error/Failure"/>
                         <button name="action_task_queue_default" type="object" string="Task default"/>
                         <button name="action_task_queue_high" type="object" string="Task queue=high"/>
