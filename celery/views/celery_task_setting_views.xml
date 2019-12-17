@@ -16,6 +16,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="jammed_after_seconds"/>
                     <field name="handle_jammed_by_cron"/>
                     <field name="schedule"/>
+                    <field name="transaction_strategy"/>
                     <field name="active"/>
                 </tree>
             </field>
@@ -89,6 +90,13 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                             <field name="schedule_hours_from" string="From" widget="float_time"/>
                                             <field name="schedule_hours_to" string="To" widget="float_time"/>
                                         </group>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Other" name="tab_other">
+                                <group name="transaction">
+                                    <group>
+                                        <field name="transaction_strategy"/>
                                     </group>
                                 </group>
                             </page>

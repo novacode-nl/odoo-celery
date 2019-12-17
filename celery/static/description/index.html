@@ -252,7 +252,8 @@ password = Odoo-User-Password</pre>
     <h2 class="oe_slogan" style="color:#875A7B;">Changelog</h2>
     <h4 class="oe_mb16">0.18</h4>
     <ul>
-      <li>Possibility to create and call task after the current transaction has been committed - kwargs: <code>after_commit=True</code>.
+      <li>Configurable (database) transaction strategy, when the task shall apply (ORM create and send to Celery MQ).</li>
+      <li>From now on - by default a task shall apply after commit of the main/caller transaction, instead of immediately in the main/caller transaction.</li>
     </ul>
     <h4 class="oe_mb16">0.17</h4>
     <ul>

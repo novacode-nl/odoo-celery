@@ -127,6 +127,7 @@ class CeleryTask(models.Model):
         selection='_selection_retry_countdown_settings', string='Retry Countdown Setting')
     retry_countdown_add_seconds = fields.Integer(string='Retry Countdown add seconds')
     retry_countdown_multiply_retries_seconds = fields.Integer(string='Retry Countdown multiply retries seconds')
+    transaction_strategy = fields.Char(string='Transaction Strategy Applied', readonly=True)
 
     def _selection_states(self):
         return STATES
@@ -288,21 +289,60 @@ class CeleryTask(models.Model):
             if not scheduled_date:  # if the task is not scheduled for a later time
                 obj._celery_call_task(user_id, task_uuid, model, method, kwargs)
 
-        if kwargs.get('after_commit'):
-            # Possibility to create (ORM) and call task (send to MQ)
-            # after the current transaction has been committed. This
-            # option can be used to avoid undesired side effects due
-            # to the current/main transaction isn't committed
-            # yet. Especially if you need to ensure data from the main
-            # transaction has been committed to use in the task.
-            #
-            # IMPORTANT: Use wisely and ensure idempotency of the task
-            # - Because the main transaction could fail and encounter
-            # a rollback, while the task could still be send to the
-            # Celery MQ.
-            self._cr.after('commit', lambda: create_and_call_task(self, task_uuid, vals))
-        else:
+        transaction_strategy = self._transaction_strategy(task_setting, kwargs)
+        logger.debug('call_task - transaction strategy: %s' % transaction_strategy)
+        vals['transaction_strategy'] = transaction_strategy
+
+        if transaction_strategy == 'immediate':
             create_and_call_task(self, task_uuid, vals)
+        else:
+            self._cr.after('commit', lambda: create_and_call_task(self, task_uuid, vals))
+
+    def _transaction_strategies(self):
+        transaction_strategies = self.env['celery.task.setting']._fields['transaction_strategy'].selection
+        # return values except 'api'.
+        return [r[0] for r in transaction_strategies if r[0] != 'api']
+
+    def _transaction_strategy(self, task_setting, kwargs):
+        """
+        When the task shall apply (ORM create and send to Celery MQ).
+        Possible options (return values):
+
+        after_commit
+        ------------
+        The call_task shall apply after the main/caller transaction
+        has been committed.  This avoids undesired side effects due to
+        the current/main transaction isn't committed yet. Especially
+        if you need to ensure data from the main transaction has been
+        committed to use in the task.
+
+        immediate
+        ---------
+        The call_task shall apply immediately from the main/caller
+        transaction, even if it ain't committed yet.  Use wisely and
+        ensure idempotency of the task. Because the main/caller
+        transaction could fail and encounter a rollback, while the
+        task shall still be send to the Celery MQ.
+        """
+
+        transaction_strategies = self._transaction_strategies()
+        api_transaction_strategy = kwargs.get('transaction_strategy')
+
+        if task_setting and task_setting.transaction_strategy == 'api' \
+           and api_transaction_strategy in transaction_strategies:
+            transaction_strategy = api_transaction_strategy
+        elif not task_setting and api_transaction_strategy in transaction_strategies:
+            transaction_strategy = api_transaction_strategy
+        elif task_setting and task_setting.transaction_strategy != 'api':
+            transaction_strategy = task_setting.transaction_strategy
+        else:
+            transaction_strategy = 'after_commit'
+
+        # Extra save guard, in case the value is unknown.
+        if transaction_strategy not in transaction_strategies:
+            transaction_strategy = 'after_commit'
+
+        return transaction_strategy
 
     @api.model
     def _celery_call_task(self, user_id, uuid, model, method, kwargs):

@@ -107,6 +107,9 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                 <group name="kwargs" cols="4">
                                     <field name="kwargs" widget="char"/>
                                 </group>
+                                <group name="transaction_strategy">
+                                    <field name="transaction_strategy"/>
+                                </group>
                             </page>
                         </notebook>
                     </sheet>
@@ -129,6 +132,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="method"/>
                     <field name="ref"/>
                     <field name="queue"/>
+                    <field name="transaction_strategy"/>
                     <filter name="pending" string="Pending"
                             domain="[('state', '=', 'PENDING')]"/>
                     <filter name="scheduled" string="Scheduled"

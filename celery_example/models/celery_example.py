@@ -29,15 +29,20 @@ class CeleryExample(models.Model):
         self.env["celery.task"].call_task("celery.example", "task_with_reference", example_id=self.id, celery_task_vals=celery_task_vals, celery=celery)
 
     @api.multi
-    def action_task_after_commit(self):
+    def action_task_immediate(self):
         celery = {
             'countdown': 10, 'retry': True,
             'retry_policy': {'max_retries': 2, 'interval_start': 2}
         }
         celery_task_vals = {
-            'ref': 'celery.example.task_after_commit'
+            'ref': 'celery.example.task_immediate'
         }
-        self.env["celery.task"].call_task("celery.example", "task_after_commit", example_id=self.id, celery_task_vals=celery_task_vals, celery=celery, after_commit=True)
+        self.env["celery.task"].call_task(
+            "celery.example", "task_immediate",
+            example_id=self.id,
+            celery_task_vals=celery_task_vals,
+            celery=celery,
+            transaction_strategy='immediate')
 
     @api.multi
     def action_task_with_error(self):
@@ -91,8 +96,8 @@ class CeleryExample(models.Model):
         return msg
 
     @api.model
-    def task_after_commit(self, task_uuid, **kwargs):
-        task = 'task_after_commit'
+    def task_immediate(self, task_uuid, **kwargs):
+        task = 'task_immediate'
         example_id = kwargs.get('example_id')
         self.env['celery.example.line'].create({
             'name': task,

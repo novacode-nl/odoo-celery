@@ -41,6 +41,15 @@ class CeleryTaskSetting(models.Model):
     schedule_hours_from = fields.Float(string='Schedule hours from', default=0.0)
     schedule_hours_to = fields.Float(string='Schedule hours to', default=0.0)
 
+    transaction_strategy = fields.Selection(
+        [('after_commit', 'After commit'), ('immediate', 'Immediate'), ('api', 'API')],
+        string="Transaction Strategy", required=True, default='after_commit', track_visibility='onchange',
+        help="""Specifies when the task shall apply (ORM create and send to Celery MQ):
+        - After commit: Apply after commit of the main/caller transaction (default setting).
+        - Immediate: Apply immediately from the main/caller transaction, even if it ain't committed yet.
+        - API: Programmatically set in the call_task() method kwargs. Also used and applied if no Task Setting record exists."""
+    )
+
     @api.constrains('model', 'method')
     def _check_model_method_unique(self):
         count = self.search_count([('model', '=', self.model), ('method', '=', self.method)])
