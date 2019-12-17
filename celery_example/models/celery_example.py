@@ -159,6 +159,24 @@ class CeleryExample(models.Model):
         _logger.info(msg)
         return msg
 
+    def _cron_schedule_example(self):
+        self.env['celery.task'].call_task(self._name, 'schedule_cron_example')
+
+    @api.model
+    def schedule_cron_example(self, task_uuid, **kwargs):
+        self.env['celery.task'].call_task(
+            self._name, 'run_cron_example')
+
+        msg = 'Schedule Cron Example'
+        _logger.critical(msg)
+        return {'result': msg}
+
+    @api.model
+    def run_cron_example(self, task_uuid, **kwargs):
+        msg = 'Run Cron Example'
+        _logger.critical(msg)
+        return {'result': msg}
+
     @api.multi
     def refresh_view(self):
         return True
