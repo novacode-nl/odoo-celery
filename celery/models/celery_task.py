@@ -282,7 +282,7 @@ class CeleryTask(models.Model):
         dbname = self._cr.dbname
         vals['transaction_strategy'] = transaction_strategy
 
-        def apply_call_task(vals):
+        def apply_call_task():
             # Closure uses several variables from enslosing scope.
             db_registry = model_registry.Registry.new(dbname)
             call_task = False
@@ -309,9 +309,9 @@ class CeleryTask(models.Model):
                         Task._celery_call_task(user_id, task_uuid, model, method, kwargs)
 
         if transaction_strategy == 'immediate':
-            apply_call_task(vals)
+            apply_call_task()
         else:
-            self._cr.after('commit', lambda: apply_call_task(vals))
+            self._cr.after('commit', lambda: apply_call_task())
 
     def _transaction_strategies(self):
         transaction_strategies = self.env['celery.task.setting']._fields['transaction_strategy'].selection
