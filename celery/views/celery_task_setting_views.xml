@@ -93,8 +93,8 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                     </group>
                                 </group>
                             </page>
-                            <page string="Other" name="tab_other">
-                                <group name="transaction">
+                            <page string="Execution" name="tab_execution">
+                                <group name="execution">
                                     <group>
                                         <field name="transaction_strategy"/>
                                     </group>
