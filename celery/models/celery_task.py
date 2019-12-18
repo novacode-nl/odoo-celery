@@ -311,7 +311,7 @@ class CeleryTask(models.Model):
         if transaction_strategy == 'immediate':
             apply_call_task()
         else:
-            self._cr.after('commit', lambda: apply_call_task())
+            self._cr.after('commit', apply_call_task)
 
     def _transaction_strategies(self):
         transaction_strategies = self.env['celery.task.setting']._fields['transaction_strategy'].selection
