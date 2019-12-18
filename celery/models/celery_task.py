@@ -128,7 +128,7 @@ class CeleryTask(models.Model):
         selection='_selection_retry_countdown_settings', string='Retry Countdown Setting')
     retry_countdown_add_seconds = fields.Integer(string='Retry Countdown add seconds')
     retry_countdown_multiply_retries_seconds = fields.Integer(string='Retry Countdown multiply retries seconds')
-    transaction_strategy = fields.Char(string='Transaction Strategy Applied', readonly=True)
+    transaction_strategy = fields.Char(string='Transaction Strategy', readonly=True)
 
     def _selection_states(self):
         return STATES
