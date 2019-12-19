@@ -42,10 +42,8 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                         <button name="refresh_view" class="pull-right" type="object" icon="fa-retweet">Refresh view</button>
                         <field name="res_model" invisible="1"/>
                         <group>
-                            <group>
-                                <field name="uuid"/>
-                                <field name="ref" attrs="{'invisible': [('ref', '=', False)]}"/>
-                            </group>
+                            <field name="uuid"/>
+                            <field name="ref" attrs="{'invisible': [('ref', '=', False)]}"/>
                         </group>
                         <group>
                             <group>
