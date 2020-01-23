@@ -4,16 +4,16 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 
 <odoo>
     <data>
-        <record id="view_celery_handle_jammed_task_form" model="ir.ui.view">
-            <field name="name">Celery Handle Jammed Task</field>
-            <field name="model">celery.handle.jammed.task</field>
+        <record id="view_celery_handle_stuck_task_form" model="ir.ui.view">
+            <field name="name">Celery Handle Stuck Task</field>
+            <field name="model">celery.handle.stuck.task</field>
             <field name="arch" type="xml">
-                <form string="Change Task to Jammed">
-                    <group string="The state of selected tasks shall changed to Jammed.">
+                <form string="Change Task to Stuck">
+                    <group string="The state of selected tasks shall changed to Stuck.">
                         <field name="task_ids" nolabel="1"/>
                     </group>
                     <footer>
-                        <button name="action_handle_jammed_tasks" string="Apply" type="object" class="btn btn-primary"/>
+                        <button name="action_handle_stuck_tasks" string="Apply" type="object" class="btn btn-primary"/>
                         <button string="Close" class="oe_link" special="cancel"/>
                     </footer>
                 </form>

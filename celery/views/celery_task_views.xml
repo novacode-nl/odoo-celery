@@ -20,6 +20,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="started_date"/>
                     <field name="state_date"/>
                     <field name="scheduled_date"/>
+                    <field name="stuck"/>
                     <field name="state"/>
 		</tree>
 	    </field>
@@ -145,10 +146,11 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             domain="[('state', '=', 'FAILURE')]"/>
                     <filter name="success" string="Success"
                             domain="[('state', '=', 'SUCCESS')]"/>
-                    <filter name="jammed" string="Jammed"
-                            domain="[('state', '=', 'JAMMED')]"/>
                     <filter name="cancel" string="Cancel"
                             domain="[('state', '=', 'CANCEL')]"/>
+                    <separator/>
+                    <filter name="stuck" string="Stuck"
+                            domain="[('stuck', '=', True)]"/>
                     <separator/>
                     <filter name="today" string="Added Today" domain="[('create_date','&gt;', (context_today() - datetime.timedelta(days=1)).strftime('%%Y-%%m-%%d') )]"/>
                     <filter name="this_week" string="Added In The Last 7 Days" domain="[('create_date','&gt;', (context_today() - datetime.timedelta(days=7)).strftime('%%Y-%%m-%%d') )]"/>

@@ -12,9 +12,9 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                 <tree string="Task Setting" decoration-muted="(not active)">
                     <field name="model"/>
                     <field name="method"/>
-                    <field name="handle_jammed"/>
-                    <field name="jammed_after_seconds"/>
-                    <field name="handle_jammed_by_cron"/>
+                    <field name="handle_stuck"/>
+                    <field name="stuck_after_seconds"/>
+                    <field name="handle_stuck_by_cron"/>
                     <field name="schedule"/>
                     <field name="transaction_strategy"/>
                     <field name="active"/>
@@ -55,19 +55,19 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                     </group>
                                 </group>
                             </page>
-                            <page string="Jammed" name="tab_jammed">
-                                <group name="jammed">
+                            <page string="Stuck" name="tab_stuck">
+                                <group name="stuck">
                                     <group colspan="2">
-                                        <field name="handle_jammed"/>
+                                        <field name="handle_stuck"/>
                                     </group>
                                     <group colspan="2">
-                                        <p>A task seems Jammed when it's still in state <strong>Started</strong> or <strong>Retry</strong>, after certain elapsed seconds.</p>
+                                        <p>A task seems Stuck when it's still in state <strong>Started</strong> or <strong>Retry</strong>, after certain elapsed seconds.</p>
                                     </group>
-                                    <group attrs="{'invisible': [('handle_jammed', '=', False)]}">
-                                        <field name="jammed_after_seconds"/>
+                                    <group attrs="{'invisible': [('handle_stuck', '=', False)]}">
+                                        <field name="stuck_after_seconds"/>
                                     </group>
-                                    <group attrs="{'invisible': [('handle_jammed', '=', False)]}">
-                                        <field name="handle_jammed_by_cron"/>
+                                    <group attrs="{'invisible': [('handle_stuck', '=', False)]}">
+                                        <field name="handle_stuck_by_cron"/>
                                     </group>
                                 </group>
                             </page>

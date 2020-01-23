@@ -3,29 +3,29 @@
 
 from odoo import api, fields, models
 
-from ..models.celery_task import STATES_TO_JAMMED
+from ..models.celery_task import STATES_TO_STUCK
 
 
-class CeleryHandleJammedJask(models.TransientModel):
-    _name = 'celery.handle.jammed.task'
-    _description = 'Handle Jammed Task'
+class CeleryHandleStuckJask(models.TransientModel):
+    _name = 'celery.handle.stuck.task'
+    _description = 'Handle Stuck Task'
 
     @api.model
     def _default_task_ids(self):
         res = False
         context = self.env.context
-        if (context.get('active_model') == 'celery.jammed.task.report' and
+        if (context.get('active_model') == 'celery.stuck.task.report' and
                 context.get('active_ids')):
             task_ids = context['active_ids']
             res = self.env['celery.task'].search([
                 ('id', 'in', context['active_ids']),
-                ('state', 'in', STATES_TO_JAMMED)]).ids
+                ('state', 'in', STATES_TO_STUCK)]).ids
         return res
 
     task_ids = fields.Many2many(
         'celery.task', string='Tasks', default=_default_task_ids,
-        domain=[('state', 'in', STATES_TO_JAMMED)])
+        domain=[('state', 'in', STATES_TO_STUCK)])
 
-    def action_handle_jammed_tasks(self):
-        self.task_ids.action_jammed()
+    def action_handle_stuck_tasks(self):
+        self.task_ids.action_stuck()
         return {'type': 'ir.actions.act_window_close'}

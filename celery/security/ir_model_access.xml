@@ -71,9 +71,9 @@ See LICENSE file for full copyright and licensing details. -->
             <field name="perm_write" eval="1"/>
             <field name="perm_unlink" eval="1"/>
         </record>
-        <record id="access_celery_jammed_task_report_celery_manager" model="ir.model.access">
-            <field name="name">celery.jammed.task.report: Celery Manager</field>
-            <field name="model_id" ref="celery.model_celery_jammed_task_report"/>
+        <record id="access_celery_stuck_task_report_celery_manager" model="ir.model.access">
+            <field name="name">celery.stuck.task.report: Celery Manager</field>
+            <field name="model_id" ref="celery.model_celery_stuck_task_report"/>
             <field name="group_id" ref="celery.group_celery_manager"/>
             <field name="perm_read" eval="1"/>
             <field name="perm_create" eval="0"/>

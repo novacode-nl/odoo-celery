@@ -3,11 +3,11 @@
 License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 
 <odoo>
-    <record id="view_celery_jammed_task_report_tree" model="ir.ui.view">
-        <field name="name">celery.jammed.task.report.tree</field>
-        <field name="model">celery.jammed.task.report</field>
+    <record id="view_celery_stuck_task_report_tree" model="ir.ui.view">
+        <field name="name">celery.stuck.task.report.tree</field>
+        <field name="model">celery.stuck.task.report</field>
         <field name="arch" type="xml">
-            <tree string="Celery Jammed Task Report" create="false" edit="false" delete="false"
+            <tree string="Celery Stuck Task Report" create="false" edit="false" delete="false"
                   default_order="id desc">
                 <field name="task_id"/>
                 <field name="model"/>
@@ -26,18 +26,18 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
     </record>
 
     <!-- Action, menu -->
-    <record id="action_celery_jammed_task_report" model="ir.actions.act_window">
-        <field name="name">Celery Jammed Tasks</field>
-        <field name="res_model">celery.jammed.task.report</field>
+    <record id="action_celery_stuck_task_report" model="ir.actions.act_window">
+        <field name="name">Celery Stuck Tasks</field>
+        <field name="res_model">celery.stuck.task.report</field>
         <field name="view_mode">tree,form</field>
     </record>
 
-    <record id="view_celery_jammed_task_report_search" model="ir.ui.view">
-        <field name="name">celery.jammed.task.report.search</field>
-        <field name="model">celery.jammed.task.report</field>
+    <record id="view_celery_stuck_task_report_search" model="ir.ui.view">
+        <field name="name">celery.stuck.task.report.search</field>
+        <field name="model">celery.stuck.task.report</field>
         <field name="type">search</field>
         <field name="arch" type="xml">
-            <search string="Celery Jammed Tasks">
+            <search string="Celery Stuck Tasks">
         	<field name="uuid"/>
                 <field name="model"/>
                 <field name="method"/>
@@ -58,10 +58,10 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
     </record>
 
     <act_window
-        id="action_celery_task_set_state_jammed"
-        name="Update state to Jammed"
-        res_model="celery.handle.jammed.task"
-        binding_model="celery.jammed.task.report"
+        id="action_celery_task_set_state_stuck"
+        name="Update state to Stuck"
+        res_model="celery.handle.stuck.task"
+        binding_model="celery.stuck.task.report"
         view_mode="form"
         target="new"/>
 </odoo>

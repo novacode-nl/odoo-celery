@@ -14,10 +14,10 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                   parent="menu_celery_root"
                   action="action_celery_task"
                   sequence="10"/>
-        <menuitem id="menu_celery_jammed_task_report"
-                  name="Jammed Tasks"
+        <menuitem id="menu_celery_stuck_task_report"
+                  name="Stuck Tasks"
                   parent="celery.menu_celery_root"
-                  action="action_celery_jammed_task_report"
+                  action="action_celery_stuck_task_report"
                   sequence="50"/>
 
         <!-- Settings -->

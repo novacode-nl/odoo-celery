@@ -6,14 +6,12 @@ import logging
 from odoo import tools
 from odoo import api, fields, models, tools, _
 
-from ..models.celery_task import STATE_JAMMED
-
 _logger = logging.getLogger(__name__)
 
 
-class CeleryJammedTaskReport(models.Model):
-    _name = 'celery.jammed.task.report'
-    _description = 'Jammed Tasks Report'
+class CeleryStuckTaskReport(models.Model):
+    _name = 'celery.stuck.task.report'
+    _description = 'Stuck Tasks Report'
     _auto = False
     _rec_name = 'uuid'
     _order = 'task_id DESC'
@@ -36,9 +34,9 @@ class CeleryJammedTaskReport(models.Model):
     state_age_minutes = fields.Float(string='State Age Minutes', readonly=True)
     started_age_hours = fields.Float(string='Started Age Hours', readonly=True)
     state_age_hours = fields.Float(string='State Age Hours', readonly=True)
-    jammed = fields.Boolean(string='Seems Jammed', readonly=True)
-    handle_jammed = fields.Boolean(string='Handle Jammed', readonly=True)
-    handle_jammed_by_cron = fields.Boolean(string='Handle Jammed by Cron', readonly=True)
+    stuck = fields.Boolean(string='Seems Stuck', readonly=True)
+    handle_stuck = fields.Boolean(string='Handle Stuck', readonly=True)
+    handle_stuck_by_cron = fields.Boolean(string='Handle Stuck by Cron', readonly=True)
 
     def _query(self):
         query_str = """
@@ -59,16 +57,16 @@ class CeleryJammedTaskReport(models.Model):
               EXTRACT(EPOCH FROM timezone('UTC', now()) - t.state_date)/60 AS state_age_minutes,
               EXTRACT(EPOCH FROM timezone('UTC', now()) - t.started_date)/3600 AS started_age_hours,
               EXTRACT(EPOCH FROM timezone('UTC', now()) - t.state_date)/3600 AS state_age_hours,
-              ts.handle_jammed AS handle_jammed,
-              ts.jammed_after_seconds AS jammed_after_seconds,
-              ts.handle_jammed_by_cron AS handle_jammed_by_cron
+              ts.handle_stuck AS handle_stuck,
+              ts.stuck_after_seconds AS stuck_after_seconds,
+              ts.handle_stuck_by_cron AS handle_stuck_by_cron
             FROM
               celery_task AS t
               LEFT JOIN celery_task_setting ts ON ts.model = t.model AND ts.method = t.method
             WHERE
               ts.active = True
           ),
-          tasks_jammed AS (
+          tasks_stuck AS (
             SELECT
               t.id AS id,
               t.id AS task_id,
@@ -86,14 +84,14 @@ class CeleryJammedTaskReport(models.Model):
               t.state_age_minutes AS state_age_minutes,
               t.started_age_hours AS started_age_hours,
               t.state_age_hours AS state_age_hours,
-              t.handle_jammed AS handle_jammed,
+              t.handle_stuck AS handle_stuck,
               (CASE
-                 WHEN t.state = 'STARTED' AND (t.handle_jammed AND t.jammed_after_seconds > 0) THEN t.started_age_seconds > t.jammed_after_seconds
-                 WHEN t.state = 'RETRY' AND (t.handle_jammed AND t.jammed_after_seconds > 0) THEN t.state_age_seconds > t.jammed_after_seconds
-                 WHEN t.state = 'RETRYING' AND (t.handle_jammed AND t.jammed_after_seconds > 0) THEN t.state_age_seconds > t.jammed_after_seconds
+                 WHEN t.state = 'STARTED' AND (t.handle_stuck AND t.stuck_after_seconds > 0) THEN t.started_age_seconds > t.stuck_after_seconds
+                 WHEN t.state = 'RETRY' AND (t.handle_stuck AND t.stuck_after_seconds > 0) THEN t.state_age_seconds > t.stuck_after_seconds
+                 WHEN t.state = 'RETRYING' AND (t.handle_stuck AND t.stuck_after_seconds > 0) THEN t.state_age_seconds > t.stuck_after_seconds
                  ELSE False
-              END) AS jammed,
-              t.handle_jammed_by_cron AS handle_jammed_by_cron
+              END) AS stuck,
+              t.handle_stuck_by_cron AS handle_stuck_by_cron
             FROM
               tasks AS t
           )
@@ -114,13 +112,13 @@ class CeleryJammedTaskReport(models.Model):
               t.state_age_minutes AS state_age_minutes,
               t.started_age_hours AS started_age_hours,
               t.state_age_hours AS state_age_hours,
-              t.jammed AS jammed,
-              t.handle_jammed AS handle_jammed,
-              t.handle_jammed_by_cron AS handle_jammed_by_cron
+              t.stuck AS stuck,
+              t.handle_stuck AS handle_stuck,
+              t.handle_stuck_by_cron AS handle_stuck_by_cron
           FROM
-            tasks_jammed AS t
+            tasks_stuck AS t
           WHERE
-            t.jammed = True
+            t.stuck = True
         """
         return query_str
 

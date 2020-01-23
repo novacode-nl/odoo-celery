@@ -30,7 +30,6 @@ STATE_RETRY = 'RETRY'
 STATE_RETRYING = 'RETRYING'
 STATE_FAILURE = 'FAILURE'
 STATE_SUCCESS = 'SUCCESS'
-STATE_JAMMED = 'JAMMED'
 STATE_CANCEL = 'CANCEL'
 
 STATES = [(STATE_PENDING, 'Pending'),
@@ -38,14 +37,13 @@ STATES = [(STATE_PENDING, 'Pending'),
           (STATE_STARTED, 'Started'),
           (STATE_RETRY, 'Retry'),
           (STATE_RETRYING, 'Retrying'),
-          (STATE_JAMMED, 'Jammed'),
           (STATE_FAILURE, 'Failure'),
           (STATE_SUCCESS, 'Success'),
           (STATE_CANCEL, 'Cancel')]
 
-STATES_TO_JAMMED = [STATE_STARTED, STATE_RETRY, STATE_RETRYING]
-STATES_TO_CANCEL = [STATE_PENDING, STATE_SCHEDULED, STATE_JAMMED]
-STATES_TO_REQUEUE = [STATE_PENDING, STATE_SCHEDULED, STATE_RETRY, STATE_JAMMED, STATE_FAILURE]
+STATES_TO_STUCK = [STATE_STARTED, STATE_RETRY, STATE_RETRYING]
+STATES_TO_CANCEL = [STATE_PENDING, STATE_SCHEDULED]
+STATES_TO_REQUEUE = [STATE_PENDING, STATE_SCHEDULED, STATE_RETRY, STATE_FAILURE]
 
 
 CELERY_PARAMS = [
@@ -106,12 +104,12 @@ class CeleryTask(models.Model):
         - STARTED: The task has been started.
         - RETRY: The task is to be retried, possibly because of failure.
         - RETRYING: The task is executing a retry, possibly because of failure.
-        - JAMMED: The task has been Started, but due to inactivity marked as Jammed.
         - FAILURE: The task raised an exception, or has exceeded the retry limit.
         - SUCCESS: The task executed successfully.
         - CANCEL: The task has been aborted and cancelled by user action.""")
     res_model = fields.Char(string='Related Model', readonly=True)
     res_ids = fields.Serialized(string='Related Ids', readonly=True)
+    stuck = fields.Boolean(string='Stuck')
 
     # Celery Retry Policy
     # http://docs.celeryproject.org/en/latest/userguide/calling.html#retry-policy
@@ -568,7 +566,7 @@ class CeleryTask(models.Model):
                 })
         return True
 
-    def action_jammed(self):
+    def action_stuck(self):
         user, password, sudo = _get_celery_user_config()
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
 
@@ -577,21 +575,21 @@ class CeleryTask(models.Model):
         user_id = user_id[0]['id']
 
         for task in self:
-            if task.state in STATES_TO_JAMMED:
+            if task.state in STATES_TO_STUCK:
                 task.write({
-                    'state': STATE_JAMMED,
+                    'stuck': True,
                     'state_date': fields.Datetime.now()
                 })
         return True
 
     @api.model
-    def cron_handle_jammed_tasks(self):
-        JammedTaskReport = self.env['celery.jammed.task.report']
-        domain = [('jammed', '=', True)]
-        tasks = JammedTaskReport.search(domain)
+    def cron_handle_stuck_tasks(self):
+        StuckTaskReport = self.env['celery.stuck.task.report']
+        domain = [('stuck', '=', True)]
+        tasks = StuckTaskReport.search(domain)
         for t in tasks:
-            if t.handle_jammed and t.handle_jammed_by_cron:
-                t.task_id.action_jammed()
+            if t.handle_stuck and t.handle_stuck_by_cron:
+                t.task_id.action_stuck()
 
     @api.model
     def cron_handle_scheduled_tasks(self):

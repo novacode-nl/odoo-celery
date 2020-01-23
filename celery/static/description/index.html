@@ -306,8 +306,8 @@ password = Odoo-User-Password</pre>
     <ul>
       <li>Fix task retry countdown/interval ignored. For more info see <a href="https://github.com/novacode-nl/odoo-celery/issues/14" target="_blank">GitHub issue</a></li>
       <li>Add task retry countdown settings, to increase countdown during retries ('ADD_SECS', 'MUL_RETRY', 'MUL_RETRY_SECS').</li>      
-      <li>Search view of jammed tasks: (1) Add/show field <code>reference</code> (2) search-view with filters and grouping.</li>
-      <li>Track task changes of fields <code>model, method, handle_jammed</code></li>
+      <li>Search view of stuck tasks: (1) Add/show field <code>reference</code> (2) search-view with filters and grouping.</li>
+      <li>Track task changes of fields <code>model, method, handle_stuck</code></li>
       <li>Disable create/copy in the task form-view.</li>
     </ul>
     <h4 class="oe_mb16">0.7</h4>
@@ -320,12 +320,12 @@ password = Odoo-User-Password</pre>
       </li>
     </ul>
     <h4 class="oe_mb16">0.6</h4>
-    <em>Introduction of "Jammed" tasks. A jammed task could be caused, for example by: a stopped/restarted Celery worker, message broker, or server.</em>
+    <em>Introduction of "Stuck" tasks. A stuck task could be caused, for example by: a stopped/restarted Celery worker, message broker, or server.</em>
     <ul>
-      <li>Settings: to specify when a task (model, method) is Jammed after seconds from Started or Retry (states).</li>
-      <li>Jammed Tasks Report: which shows Jammed (not completed) tasks.</li>
-      <li>Cron or manually put tasks in "Jammed" state.</li>
-      <li>Ability to cancel (Pending or Jammed) tasks, which never completed.</li>
+      <li>Settings: to specify when a task (model, method) is Stuck after seconds from Started or Retry (states).</li>
+      <li>Stuck Tasks Report: which shows Stuck (not completed) tasks.</li>
+      <li>Cron or manually put tasks in "Stuck" state.</li>
+      <li>Ability to cancel (Pending or Stuck) tasks, which never completed.</li>
       <li>Track and messaging about state change. Chatter on form view.</li>
     </ul>
     <h4 class="oe_mb16">0.5</h4>

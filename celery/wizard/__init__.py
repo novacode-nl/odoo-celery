@@ -3,4 +3,4 @@
 
 from . import celery_requeue_task
 from . import celery_cancel_task
-from . import celery_handle_jammed_task
+from . import celery_handle_stuck_task
