@@ -129,7 +129,6 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
         <record id="action_celery_task_setting" model="ir.actions.act_window">
             <field name="name">Celery Task Settings</field>
             <field name="res_model">celery.task.setting</field>
-            <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="context">{'search_default_all': 1}</field>
             <field name="view_id" ref="view_celery_task_setting_tree"/>

@@ -26,7 +26,6 @@ class CeleryHandleJammedJask(models.TransientModel):
         'celery.task', string='Tasks', default=_default_task_ids,
         domain=[('state', 'in', STATES_TO_JAMMED)])
 
-    @api.multi
     def action_handle_jammed_tasks(self):
         self.task_ids.action_jammed()
         return {'type': 'ir.actions.act_window_close'}

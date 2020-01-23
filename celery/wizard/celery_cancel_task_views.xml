@@ -23,7 +23,6 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
         <record id="action_cancel_celery_task" model="ir.actions.act_window">
             <field name="name">Cancel Task</field>
             <field name="res_model">celery.cancel.task</field>
-            <field name="view_type">form</field>
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_cancel_celery_task"/>
             <field name="target">new</field>

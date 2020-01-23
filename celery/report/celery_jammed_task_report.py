@@ -124,7 +124,6 @@ class CeleryJammedTaskReport(models.Model):
         """
         return query_str
 
-    @api.model_cr
     def init(self):
         try:
             tools.drop_view_if_exists(self.env.cr, self._table)

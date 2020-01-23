@@ -25,7 +25,6 @@ class CancelTask(models.TransientModel):
 
     task_ids = fields.Many2many('celery.task', string='Tasks', default=_default_task_ids)
 
-    @api.multi
     def action_cancel(self):
         self.task_ids.action_cancel()
         return {'type': 'ir.actions.act_window_close'}

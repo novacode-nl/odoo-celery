@@ -11,7 +11,6 @@ class CeleryQueue(models.Model):
     _inherit = ['mail.thread']
     _order = 'name'
 
-    @api.multi
     def _get_task_settings(self):
         for record in self:
             task_setting_ids = self.env['celery.task.setting.queue'].search([('queue_id', '=', record.id)]) or []
@@ -19,7 +18,6 @@ class CeleryQueue(models.Model):
                 task_setting_ids = [t.task_setting_id.id for t in task_setting_ids]
             record.task_setting_ids = task_setting_ids
 
-    @api.multi
     def _compute_stats(self):
         if 'compute_queue_stats' in self._context:
             self._cr.execute("""SELECT

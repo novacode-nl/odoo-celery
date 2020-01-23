@@ -136,7 +136,6 @@ class CeleryTask(models.Model):
     def _selection_retry_countdown_settings(self):
         return RETRY_COUNTDOWN_SETTINGS
 
-    @api.multi
     def write(self, vals):
         celery_params = {param: vals[param] for param in CELERY_PARAMS if param in vals}
 
@@ -148,7 +147,6 @@ class CeleryTask(models.Model):
             vals['kwargs'] = kwargs
         return super(CeleryTask, self).write(vals)
 
-    @api.multi
     def unlink(self):
         for task in self:
             if task.state in [STATE_STARTED, STATE_RETRY]:
@@ -518,7 +516,6 @@ class CeleryTask(models.Model):
             msg = 'Task already in state {state}.'.format(state=state)
             return ('OK', msg)
 
-    @api.multi
     def action_pending(self):
         for task in self:
             task.state = STATE_PENDING
@@ -530,7 +527,6 @@ class CeleryTask(models.Model):
     def _states_to_requeue(self):
         return STATES_TO_REQUEUE
 
-    @api.multi
     def action_requeue(self):
         user, password, sudo = _get_celery_user_config()
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
@@ -554,7 +550,6 @@ class CeleryTask(models.Model):
     def _states_to_cancel(self):
         return STATES_TO_CANCEL
 
-    @api.multi
     def action_cancel(self):
         user, password, sudo = _get_celery_user_config()
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
@@ -573,7 +568,6 @@ class CeleryTask(models.Model):
                 })
         return True
 
-    @api.multi
     def action_jammed(self):
         user, password, sudo = _get_celery_user_config()
         user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
@@ -649,7 +643,6 @@ class CeleryTask(models.Model):
             self.env.cr.commit()
         return True
 
-    @api.multi
     def action_open_related_record(self):
         """ Open a view with the record(s) of the task.  If it's one record,
         it opens a form-view.  If it concerns mutltiple records, it opens
@@ -678,7 +671,6 @@ class CeleryTask(models.Model):
             })
         return action
 
-    @api.multi
     def refresh_view(self):
         return True
 

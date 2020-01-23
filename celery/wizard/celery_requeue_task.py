@@ -26,7 +26,6 @@ class RequeueTask(models.TransientModel):
         'celery.task', string='Tasks', default=_default_task_ids,
         domain=[('state', 'in', STATES_TO_REQUEUE)])
 
-    @api.multi
     def action_requeue(self):
         self.task_ids.action_requeue()
         return {'type': 'ir.actions.act_window_close'}

@@ -17,7 +17,6 @@ class CeleryExample(models.Model):
     name = fields.Char(default='Celery Example', required=True)
     lines = fields.One2many('celery.example.line', 'example_id', string='Lines')
 
-    @api.multi
     def action_task_with_reference(self):
         celery = {
             'countdown': 10, 'retry': True,
@@ -28,7 +27,6 @@ class CeleryExample(models.Model):
         }
         self.env["celery.task"].call_task("celery.example", "task_with_reference", example_id=self.id, celery_task_vals=celery_task_vals, celery=celery)
 
-    @api.multi
     def action_task_immediate(self):
         celery = {
             'countdown': 10, 'retry': True,
@@ -44,7 +42,6 @@ class CeleryExample(models.Model):
             celery=celery,
             transaction_strategy='immediate')
 
-    @api.multi
     def action_task_with_error(self):
         celery = {
             'countdown': 2,
@@ -59,7 +56,6 @@ class CeleryExample(models.Model):
         }
         self.env["celery.task"].call_task("celery.example", "task_with_error", example_id=self.id, celery=celery)
 
-    @api.multi
     def action_task_queue_default(self):
         celery = {
             'countdown': 3, 'retry': True,
@@ -67,7 +63,6 @@ class CeleryExample(models.Model):
         }
         self.env["celery.task"].call_task("celery.example", "task_queue_default", example_id=self.id, celery=celery)
 
-    @api.multi
     def action_task_queue_high(self):
         celery = {
             'queue': 'high.priority', 'countdown': 2, 'retry': True,
@@ -75,7 +70,6 @@ class CeleryExample(models.Model):
         }
         self.env["celery.task"].call_task("celery.example", "task_queue_high", example_id=self.id, celery=celery)
 
-    @api.multi
     def action_task_queue_low(self):
         celery = {
             'queue': 'low.priority', 'countdown': 2, 'retry': True,
@@ -177,7 +171,6 @@ class CeleryExample(models.Model):
         _logger.critical(msg)
         return {'result': msg}
 
-    @api.multi
     def refresh_view(self):
         return True
 
