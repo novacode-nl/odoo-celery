@@ -2,7 +2,6 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
 import copy
-from datetime import date, datetime, timedelta
 import json
 import logging
 import os
@@ -10,14 +9,15 @@ import traceback
 import uuid
 import pytz
 
+from datetime import date, datetime, timedelta
+
 from odoo import api, fields, models, registry, _
-from odoo.addons.base_sparse_field.models.fields import Serialized
 from odoo.exceptions import UserError
 from odoo.modules import registry as model_registry
 from odoo.tools import config
 
 from ..odoo import call_task, TASK_DEFAULT_QUEUE
-from ..fields import TaskSerialized
+from ..fields import KwargsSerialized, ListSerialized
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ class CeleryTask(models.Model):
     company_id = fields.Many2one('res.company', string='Company', index=True, readonly=True)
     model = fields.Char(string='Model', readonly=True)
     method = fields.Char(string='Method', readonly=True)
-    kwargs = TaskSerialized(readonly=True)
+    kwargs = KwargsSerialized(readonly=True)
     ref = fields.Char(string='Reference', index=True, readonly=True)
     started_date = fields.Datetime(string='Start Time', readonly=True)
     # TODO REFACTOR compute and store, by @api.depends (replace all ORM writes)
@@ -108,7 +108,7 @@ class CeleryTask(models.Model):
         - SUCCESS: The task executed successfully.
         - CANCEL: The task has been aborted and cancelled by user action.""")
     res_model = fields.Char(string='Related Model', readonly=True)
-    res_ids = fields.Serialized(string='Related Ids', readonly=True)
+    res_ids = ListSerialized(string='Related Ids', readonly=True)
     stuck = fields.Boolean(string='Stuck')
 
     # Celery Retry Policy
@@ -649,7 +649,12 @@ class CeleryTask(models.Model):
 
         self.ensure_one()
         model_name = self.res_model
-        records = self.env[model_name].browse(self.res_ids).exists()
+
+        if not self.res_ids:
+            raise UserError(_('Empty fields res_ids'))
+        res_ids = self.res_ids and json.loads(self.res_ids)
+
+        records = self.env[model_name].browse(res_ids)
         if not records:
             return None
         action = {
