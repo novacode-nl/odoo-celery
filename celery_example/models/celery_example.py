@@ -87,13 +87,13 @@ class CeleryExample(models.Model):
     def task_with_reference(self, task_uuid, **kwargs):
         task = 'task_with_reference'
         example_id = kwargs.get('example_id')
-        self.env['celery.example.line'].create({
+        res = self.env['celery.example.line'].create({
             'name': task,
             'example_id': example_id
         })
         msg = 'CELERY called task: model [%s] and method [%s].' % (self._name, task)
         _logger.info(msg)
-        return msg
+        return {'result': msg, 'res_model': 'celery.example.line', 'res_ids': [res.id]}
 
     @api.model
     def task_immediate(self, task_uuid, **kwargs):
