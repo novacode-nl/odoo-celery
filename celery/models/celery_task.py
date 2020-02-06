@@ -651,7 +651,7 @@ class CeleryTask(models.Model):
         model_name = self.res_model
 
         if not self.res_ids:
-            raise UserError(_('Empty fields res_ids'))
+            raise UserError(_('Empty field res_ids'))
         res_ids = self.res_ids and json.loads(self.res_ids)
 
         records = self.env[model_name].browse(res_ids)
