@@ -232,7 +232,7 @@ class CeleryTask(models.Model):
         default_queue = kwargs.get('celery', False) and kwargs.get('celery').get('queue', '') or 'celery'
         task_queue = False
         task_setting_domain = [('model', '=', model), ('method', '=', method), ('active', '=', True)]
-        task_setting = self.env['celery.task.setting'].search(task_setting_domain, limit=1)
+        task_setting = self.env['celery.task.setting'].sudo().search(task_setting_domain, limit=1)
         if task_setting:
             # check if the task needs to be scheduled in a specified timeframe
             if task_setting.schedule:
