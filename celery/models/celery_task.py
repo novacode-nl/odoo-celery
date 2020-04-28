@@ -211,7 +211,8 @@ class CeleryTask(models.Model):
         """ Call Task dispatch to the Celery interface. """
 
         user, password, sudo = _get_celery_user_config()
-        user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
+        res_users = self.env['res.users'].with_context(active_test=False)
+        user_id = res_users.search_read([('login', '=', user)], fields=['id'], limit=1)
         if not user_id:
             msg = _('The user "%s" doesn\'t exist.') % user
             logger.error(msg)
@@ -527,7 +528,8 @@ class CeleryTask(models.Model):
 
     def action_requeue(self):
         user, password, sudo = _get_celery_user_config()
-        user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
+        res_users = self.env['res.users'].with_context(active_test=False)
+        user_id = res_users.search_read([('login', '=', user)], fields=['id'], limit=1)
 
         if not user_id:
             raise UserError('No user found with login: {login}'.format(login=user))
@@ -550,7 +552,8 @@ class CeleryTask(models.Model):
 
     def action_cancel(self):
         user, password, sudo = _get_celery_user_config()
-        user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
+        res_users = self.env['res.users'].with_context(active_test=False)
+        user_id = res_users.search_read([('login', '=', user)], fields=['id'], limit=1)
 
         if not user_id:
             raise UserError('No user found with login: {login}'.format(login=user))
@@ -568,7 +571,8 @@ class CeleryTask(models.Model):
 
     def action_stuck(self):
         user, password, sudo = _get_celery_user_config()
-        user_id = self.env['res.users'].search_read([('login', '=', user)], fields=['id'], limit=1)
+        res_users = self.env['res.users'].with_context(active_test=False)
+        user_id = res_users.search_read([('login', '=', user)], fields=['id'], limit=1)
 
         if not user_id:
             raise UserError('No user found with login: {login}'.format(login=user))
