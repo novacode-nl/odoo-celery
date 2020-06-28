@@ -254,6 +254,13 @@ password = Odoo-User-Password</pre>
 <section class="oe_container">
   <div class="oe_row oe_spaced">
     <h2 class="oe_slogan" style="color:#875A7B;">Changelog</h2>
+    <h4 class="oe_mb16">0.22</h4>
+    <ul>
+      <li>
+        Upon processing task <code>rpc_run_task</code> (method), only update the related record fields (<code>res_model</code>, <code>res_ids</code>) if these have a value set in the method its result.<br/>
+        This enables the API to store these related record fields upfront, when the task is created.
+      </li>
+    </ul>
     <h4 class="oe_mb16">0.21</h4>
     <ul>
       <li>Some security hardening: support inactive Celery User, which refuses regular (web) authentication/login.</li>

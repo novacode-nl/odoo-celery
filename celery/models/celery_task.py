@@ -454,7 +454,10 @@ class CeleryTask(models.Model):
 
                 if isinstance(res, dict):
                     result = res.get('result', True)
-                    vals.update({'res_model': res.get('res_model'), 'res_ids': res.get('res_ids')})
+                    if res.get('res_model'):
+                        vals['res_model'] = res.get('res_model')
+                    if res.get('res_ids'):
+                        vals['res_ids'] = res.get('res_ids')
                 else:
                     result = res
                 vals.update({'state': STATE_SUCCESS, 'state_date': fields.Datetime.now(), 'result': result, 'exc_info': False})
