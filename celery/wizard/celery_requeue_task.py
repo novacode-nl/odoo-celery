@@ -27,7 +27,7 @@ class RequeueTask(models.TransientModel):
 
     task_ids = fields.Many2many(
         'celery.task', string='Tasks', default=_default_task_ids,
-        domain=[('state', 'in', STATES_TO_REQUEUE)])
+        domain=['|', ('stuck', '=', True), ('state', 'in', STATES_TO_REQUEUE)])
 
     def action_requeue(self):
         self.task_ids.action_requeue()
