@@ -566,10 +566,10 @@ class CeleryTask(models.Model):
 
         for task in self:
             if task.stuck or task.state in states_to_cancel:
-                task.write({
-                    'state': STATE_CANCEL,
-                    'state_date': fields.Datetime.now()
-                })
+                vals = {'state': STATE_CANCEL, 'state_date': fields.Datetime.now()}
+                if task.stuck:
+                    vals['stuck'] = False
+                task.write(vals)
         return True
 
     def action_stuck(self):
