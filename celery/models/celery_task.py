@@ -520,11 +520,16 @@ class CeleryTask(models.Model):
 
     def action_pending(self):
         for task in self:
-            task.state = STATE_PENDING
-            task.started_date = None
-            task.state_date = None
-            task.result = None
-            task.exc_info = None
+            vals = {
+                'state': STATE_PENDING,
+                'started_date': None,
+                'state_date': None,
+                'result': None,
+                'exc_info': None
+            }
+            if task.stuck:
+                vals['stuck'] = False
+            task.write(vals)
 
     def _states_to_requeue(self):
         return STATES_TO_REQUEUE
@@ -541,7 +546,7 @@ class CeleryTask(models.Model):
         states_to_requeue = self._states_to_requeue()
 
         for task in self:
-            if task.state in states_to_requeue:
+            if task.stuck or task.state in states_to_requeue:
                 task.action_pending()
                 try:
                     _kwargs = json.loads(task.kwargs)
