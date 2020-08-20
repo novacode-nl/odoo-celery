@@ -59,7 +59,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
 
     <act_window
         id="action_celery_task_set_state_stuck"
-        name="Update state to Stuck"
+        name="Flag/update task: Stuck"
         res_model="celery.handle.stuck.task"
         binding_model="celery.stuck.task.report"
         view_mode="form"

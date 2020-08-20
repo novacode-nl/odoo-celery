@@ -20,7 +20,10 @@ class CancelTask(models.TransientModel):
             task_ids = context['active_ids']
             res = self.env['celery.task'].search([
                 ('id', 'in', context['active_ids']),
-                ('state', 'in', states_to_cancel)]).ids
+                '|',
+                ('state', 'in', states_to_cancel),
+                ('stuck', '=', True)
+            ]).ids
         return res
 
     task_ids = fields.Many2many('celery.task', string='Tasks', default=_default_task_ids)
