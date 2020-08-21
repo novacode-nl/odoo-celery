@@ -130,6 +130,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <field name="model"/>
                     <field name="method"/>
                     <field name="ref"/>
+                    <field name="exc_info"/>
                     <field name="queue"/>
                     <field name="transaction_strategy"/>
                     <filter name="pending" string="Pending"
