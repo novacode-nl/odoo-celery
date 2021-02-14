@@ -182,12 +182,12 @@ class CeleryTask(models.Model):
         current_day_of_week = datetime.now(tz=tz).weekday() + 1  # adding 1 to avoid comparisons to 0
         current_hour = (datetime.now(tz=tz).hour + (datetime.now(tz=tz).minute / 60.0) + (datetime.now(tz=tz).second / 3600.0)) or 0
         allowed_days = list(filter(None, [1 if t_setting.schedule_mondays else False,
-                                            2 if t_setting.schedule_tuesdays else False,
-                                            3 if t_setting.schedule_wednesdays else False,
-                                            4 if t_setting.schedule_thursdays else False,
-                                            5 if t_setting.schedule_fridays else False,
-                                            6 if t_setting.schedule_saturdays else False,
-                                            7 if t_setting.schedule_sundays else False]))
+                                          2 if t_setting.schedule_tuesdays else False,
+                                          3 if t_setting.schedule_wednesdays else False,
+                                          4 if t_setting.schedule_thursdays else False,
+                                          5 if t_setting.schedule_fridays else False,
+                                          6 if t_setting.schedule_saturdays else False,
+                                          7 if t_setting.schedule_sundays else False]))
         weekday_scheduling_set = any([t_setting.schedule_mondays, t_setting.schedule_tuesdays, 
                                       t_setting.schedule_wednesdays, t_setting.schedule_thursdays,
                                       t_setting.schedule_fridays, t_setting.schedule_saturdays, t_setting.schedule_sundays])
@@ -204,7 +204,7 @@ class CeleryTask(models.Model):
         elif not weekday_scheduling_set and hour_scheduling_set and out_of_allowed_hour_range:
             hour_diff = get_next_hour_diff(current_hour, t_setting.schedule_hours_from, t_setting.schedule_hours_to, current_day_of_week, allowed_days)
             scheduled_date = (datetime.now(tz=tz) + timedelta(hours=hour_diff)).astimezone(pytz.utc)
-        return scheduled_date
+        return scheduled_date and scheduled_date.replace(tzinfo=None) or False
 
     @api.model
     def call_task(self, model, method, **kwargs):

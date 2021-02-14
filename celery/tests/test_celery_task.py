@@ -3,7 +3,9 @@
 
 import json
 import uuid
+import pytz
 
+from odoo import fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.misc import mute_logger
 from odoo.tests.common import TransactionCase
@@ -71,3 +73,25 @@ class TestCeleryTask(TransactionCase):
         self.assertTrue(kwargs['celery']['retry'])
         self.assertEqual(kwargs['celery']['max_retries'], 5)
         self.assertEqual(kwargs['celery']['countdown'], 10)
+
+    def test_scheduled_task(self):
+        """ Creates a task setting scheduling the tasks to a time-window between 23:30 and 23:36 UTC """
+
+        self.env['res.users'].sudo().browse(self.env.uid).tz = 'UTC'
+        vals = {
+            'model': 'celery.task',
+            'method': 'dummy_method_schedule',
+            'schedule': True,
+            'schedule_hours_from': 23.5,
+            'schedule_hours_to': 23.6,
+        }
+        task_setting = self.env['celery.task.setting'].create(vals)
+
+        now = fields.datetime.now().replace(tzinfo=pytz.UTC)
+        scheduled_date = self.env['celery.task'].check_schedule_needed(task_setting)
+
+        if now.hour == 23 and now.minute > 30 and now.minute < 36:
+            self.assertEqual(scheduled_date, False)
+        else:
+            self.assertEqual(scheduled_date.hour, 23)
+            self.assertEqual(scheduled_date.minute, 30)
