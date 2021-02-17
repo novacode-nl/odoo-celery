@@ -4,6 +4,7 @@ See LICENSE file for full copyright and licensing details. -->
 
 <odoo>
     <data noupdate="1">
+        <!-- celery.task -->
         <record id="access_celery_task_celery_manager" model="ir.model.access">
             <field name="name">celery.task: Celery Manager</field>
             <field name="model_id" ref="celery.model_celery_task"/>
@@ -15,7 +16,6 @@ See LICENSE file for full copyright and licensing details. -->
             <field name="perm_write" eval="1"/>
             <field name="perm_unlink" eval="0"/>
         </record>
-
         <record id="access_celery_task_celery_rpc" model="ir.model.access">
             <field name="name">celery.task: Celery RPC</field>
             <field name="model_id" ref="celery.model_celery_task"/>
@@ -26,6 +26,40 @@ See LICENSE file for full copyright and licensing details. -->
             <field name="perm_unlink" eval="0"/>
         </record>
 
+        <!-- celery.requeue.task -->
+        <record id="access_celery_requeue_task_celery_manager" model="ir.model.access">
+            <field name="name">celery.requeue.task: Celery Manager</field>
+            <field name="model_id" ref="celery.model_celery_requeue_task"/>
+            <field name="group_id" ref="celery.group_celery_manager"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_unlink" eval="0"/>
+        </record>
+
+        <!-- celery.cancel.task -->
+        <record id="access_celery_cancel_task_celery_manager" model="ir.model.access">
+            <field name="name">celery.cancel.task: Celery Manager</field>
+            <field name="model_id" ref="celery.model_celery_cancel_task"/>
+            <field name="group_id" ref="celery.group_celery_manager"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_unlink" eval="0"/>
+        </record>
+
+        <!-- celery.handle.stuck.task -->
+        <record id="access_celery_handle_stuck_task_celery_manager" model="ir.model.access">
+            <field name="name">celery.handle.stuck.task: Celery Manager</field>
+            <field name="model_id" ref="celery.model_celery_handle_stuck_task"/>
+            <field name="group_id" ref="celery.group_celery_manager"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_unlink" eval="0"/>
+        </record>
+
+        <!-- celery.task.setting -->
         <record id="access_celery_task_setting_celery_manager" model="ir.model.access">
             <field name="name">celery.task.setting: Celery Manager</field>
             <field name="model_id" ref="celery.model_celery_task_setting"/>
@@ -35,6 +69,8 @@ See LICENSE file for full copyright and licensing details. -->
             <field name="perm_write" eval="1"/>
             <field name="perm_unlink" eval="1"/>
         </record>
+
+        <!-- celery.queue -->
         <record id="access_celery_queue_rpc" model="ir.model.access">
             <field name="name">celery.queue: Celery RPC</field>
             <field name="model_id" ref="celery.model_celery_queue"/>
@@ -53,6 +89,8 @@ See LICENSE file for full copyright and licensing details. -->
             <field name="perm_write" eval="1"/>
             <field name="perm_unlink" eval="1"/>
         </record>
+
+        <!-- celery.task.setting.requeue -->
         <record id="access_celery_task_setting_queue_rpc" model="ir.model.access">
             <field name="name">celery.task.setting.queue: Celery RPC</field>
             <field name="model_id" ref="celery.model_celery_task_setting_queue"/>
@@ -71,6 +109,8 @@ See LICENSE file for full copyright and licensing details. -->
             <field name="perm_write" eval="1"/>
             <field name="perm_unlink" eval="1"/>
         </record>
+
+        <!-- celery.stuck.task.report -->
         <record id="access_celery_stuck_task_report_celery_manager" model="ir.model.access">
             <field name="name">celery.stuck.task.report: Celery Manager</field>
             <field name="model_id" ref="celery.model_celery_stuck_task_report"/>

@@ -71,8 +71,8 @@ class CeleryQueue(models.Model):
                 record.queue_tasks_ratio = (float(record.queue_tasks) / float(total_tasks)) * 100.00
                 record.queue_percentage = (float(record.queue_tasks_24h_done) / float(queue_tasks_24h)) * 100.00
 
-    name = fields.Char('Name', required=True, track_visibility='onchange')
-    active = fields.Boolean(string='Active', default=True, track_visibility='onchange')
+    name = fields.Char('Name', required=True, tracking=True)
+    active = fields.Boolean(string='Active', default=True, tracking=True)
     task_setting_ids = fields.Many2many(
         string="Tasks",
         comodel_name="celery.task.setting",

@@ -97,7 +97,7 @@ class CeleryTask(models.Model):
         required=True,
         readonly=True,
         index=True,
-        track_visibility='onchange',
+        tracking=True,
         help="""\
         - PENDING: The task is waiting for execution.
         - SCHEDULED: The task is pending and scheduled to be run within a specified timeframe.

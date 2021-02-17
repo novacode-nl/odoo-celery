@@ -57,11 +57,12 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
         </field>
     </record>
 
-    <act_window
-        id="action_celery_task_set_state_stuck"
-        name="Flag/update task: Stuck"
-        res_model="celery.handle.stuck.task"
-        binding_model="celery.stuck.task.report"
-        view_mode="form"
-        target="new"/>
+    <record id="action_celery_task_set_state_stuck" model="ir.actions.act_window">
+        <field name="name">Flag/update task: Stuck</field>
+        <field name="res_model">celery.handle.stuck.task</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_celery_task_tree"/>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="celery.model_celery_stuck_task_report"/>
+    </record>
 </odoo>

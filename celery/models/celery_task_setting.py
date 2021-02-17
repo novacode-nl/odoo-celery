@@ -12,14 +12,14 @@ class CeleryTaskSetting(models.Model):
     _order = 'name'
 
     name = fields.Char('Name', compute='_compute_name', store=True)
-    model = fields.Char(string='Model', required=True, track_visibility='onchange')
-    method = fields.Char(string='Method', required=True, track_visibility='onchange')
-    handle_stuck = fields.Boolean(string="Handle Stuck", track_visibility='onchange')
+    model = fields.Char(string='Model', required=True, tracking=True)
+    method = fields.Char(string='Method', required=True, tracking=True)
+    handle_stuck = fields.Boolean(string="Handle Stuck", tracking=True)
     stuck_after_seconds = fields.Integer(
-        string='Seems Stuck after seconds', track_visibility='onchange',
+        string='Seems Stuck after seconds', tracking=True,
         help="A task seems Stuck when it's still in state STARTED or RETRY, after certain elapsed seconds.")
     handle_stuck_by_cron = fields.Boolean(
-        string='Handle Stuck by Cron', default=False, track_visibility='onchange',
+        string='Handle Stuck by Cron', default=False, tracking=True,
         help='Cron shall update Tasks which seems Stuck.')
     task_queue_ids = fields.One2many(
         string="Queues",
@@ -28,7 +28,7 @@ class CeleryTaskSetting(models.Model):
         help="Queues used for this type of a task.",
     )
     use_first_empty_queue = fields.Boolean(string="Use the first queue with N or less pending tasks", default=True)
-    active = fields.Boolean(string='Active', default=True, track_visibility='onchange')
+    active = fields.Boolean(string='Active', default=True, tracking=True)
     
     schedule = fields.Boolean(string="Schedule?", default=False)
     schedule_mondays = fields.Boolean(string="Schedule on Mondays", default=False)
@@ -43,7 +43,7 @@ class CeleryTaskSetting(models.Model):
 
     transaction_strategy = fields.Selection(
         [('after_commit', 'After commit'), ('immediate', 'Immediate'), ('api', 'API')],
-        string="Transaction Strategy", required=True, default='after_commit', track_visibility='onchange',
+        string="Transaction Strategy", required=True, default='after_commit', tracking=True,
         help="""Specifies when the task shall apply (ORM create and send to Celery MQ):
         - After commit: Apply after commit of the main/caller transaction (default setting).
         - Immediate: Apply immediately from the main/caller transaction, even if it ain't committed yet.
