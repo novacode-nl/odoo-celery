@@ -61,7 +61,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
         <field name="name">Flag/update task: Stuck</field>
         <field name="res_model">celery.handle.stuck.task</field>
         <field name="view_mode">form</field>
-        <field name="view_id" ref="view_celery_task_tree"/>
+        <field name="view_id" ref="view_celery_stuck_task_report_tree"/>
         <field name="target">new</field>
         <field name="binding_model_id" ref="celery.model_celery_stuck_task_report"/>
     </record>
