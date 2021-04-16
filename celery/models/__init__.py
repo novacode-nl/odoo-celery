@@ -5,3 +5,4 @@ from . import celery_task
 from . import celery_task_setting
 from . import celery_queue
 from . import res_config_settings
+from . import res_users
