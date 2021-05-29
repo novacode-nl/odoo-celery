@@ -4,6 +4,7 @@
 import contextlib
 
 from odoo import api, models, tools
+from odoo.exceptions import AccessDenied
 from odoo.addons.celery.models.celery_task import _get_celery_user_config
 
 
