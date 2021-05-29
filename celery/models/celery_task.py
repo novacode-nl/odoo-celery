@@ -89,7 +89,7 @@ class CeleryTask(models.Model):
     state_date = fields.Datetime(string='State Time', index=True, readonly=True)
     scheduled_date = fields.Datetime(string="Scheduled Time", readonly=True)
     result = fields.Text(string='Result', readonly=True)
-    exc_info = fields.Text(string='Exception Info', readonly=True)
+    exc_info = fields.Text(string='Exception Info', readonly=True, tracking=True)
     state = fields.Selection(
         selection='_selection_states',
         string="State",
