@@ -31,8 +31,14 @@
     
     <div class="oe_row oe_centeralign mb32">
       <h4>Check out the links below, for more info about <i>Celery</i>.</h4>
-      <a href="http://celeryproject.org" target="_blank" class="oe_button oe_big">Celery</a>
-      <a href="http://docs.celeryproject.org/en/latest/getting-started/first-steps-with-celery.html" target="_blank" class="oe_button oe_big oe_tacky">Celery Installation</a>
+      <h5>
+        <i class="fa fa-info-circle"/> Celery website<br/><br/>
+        <code>http://celeryproject.org</code>
+      </h5>
+      <h5>
+        <i class="fa fa-info-circle"/> Celery installation<br/><br/>
+        <code>http://docs.celeryproject.org/en/latest/getting-started/first-steps-with-celery.html</code>
+      </h5>
     </div>
 </section>
 
@@ -81,17 +87,17 @@ celery = {
         <tr>
           <td><code>queue</code></td>
           <td>Name of the Celery/worker queue, the task shall be routed to.</td>
-          <td><a href="http://docs.celeryproject.org/en/latest/userguide/routing.html">Routing Tasks</a></td>
+          <td>Routing Tasks: <code>http://docs.celeryproject.org/en/latest/userguide/routing.html</code></td>
         </tr>
         <tr>
           <td><code>countdown</code></td>
           <td>The countdown is a shortcut to set ETA by seconds into the future.</td>
-          <td><a href="http://docs.celeryproject.org/en/latest/userguide/calling.html#eta-and-countdown">ETA and Countdown</a></td>
+          <td>ETA and Countdown: <code>http://docs.celeryproject.org/en/latest/userguide/calling.html#eta-and-countdown</code></td>
         </tr>
         <tr>
           <td><code>retry</code></td>
           <td>Set to <code>True</code> to enable the retry of sending task messages.</td>
-          <td><a href="http://docs.celeryproject.org/en/latest/userguide/calling.html#message-sending-retry">Message Sending Retry</a></td>
+          <td>Message Sending Retry: <code>http://docs.celeryproject.org/en/latest/userguide/calling.html#message-sending-retry</code></td>
         </tr>
         <tr>
           <td><code>retry_countdown_setting</code></td>
@@ -121,7 +127,7 @@ celery = {
         <tr>
           <td><code>retry_policy</code></td>
           <td>Options when retrying publishing a task message in the case of connection loss or other connection errors.</td>
-          <td><a href="http://docs.celeryproject.org/en/latest/userguide/calling.html#message-sending-retry">Message Sending Retry</a></td>
+          <td>Message Sending Retry: <code>http://docs.celeryproject.org/en/latest/userguide/calling.html#message-sending-retry</code></td>
         </tr>
       </tbody>
     </table>
@@ -191,7 +197,10 @@ celery = {
     <div class="oe_row_img oe_centered">
       <h4 class="oe_mb16 text-center">Celery and Message broker</h4>
       <div class="oe_row oe_centeralign mb64">
-        <a href="http://docs.celeryproject.org/en/latest/getting-started/first-steps-with-celery.html" target="_blank" class="oe_button oe_big">Celery Installation</a>
+        <h5>
+          <i class="fa fa-info-circle"/> Celery Installation<br/><br/>
+          <code>http://docs.celeryproject.org/en/latest/getting-started/first-steps-with-celery.html</code>
+        </h5>
       </div>
     </div>
     <div class="oe_row_img oe_centered">
@@ -208,7 +217,7 @@ celery = {
               <pre style="background-color: #dedede;">
 celery_user = Odoo-User
 celery_password = Odoo-User-Password</pre>
-            <p class="oe_mb16">See: <a href="https://github.com/novacode-nl/odoo-celery/blob/12.0/celery/example.odoo.conf" target="_blank">example.odoo.conf</a></p>
+            <p class="oe_mb16">See <code>example.odoo.conf</code>, visit link: <code>https://github.com/novacode-nl/odoo-celery/blob/14.0/celery/example.odoo.conf</code></p>
           </li>
           <li>
             <p>Put in the <code>odoo.conf</code> file, under section <code>[celery]</code> e.g:
@@ -216,7 +225,7 @@ celery_password = Odoo-User-Password</pre>
 [celery]
 user = Odoo-User
 password = Odoo-User-Password</pre>
-            <p>See: <a href="https://github.com/novacode-nl/odoo-celery/blob/12.0/celery/example_section_celery.odoo.conf" target="_blank">example_section_celery.odoo.conf</a></p>
+            <p>See <code>example_section_celery.odoo.conf</code>, visit link: <code>https://github.com/novacode-nl/odoo-celery/blob/14.0/celery/example_section_celery.odoo.conf</code></p>
           </li>
     </div>
     <div class="oe_row_img oe_centered">
@@ -244,7 +253,10 @@ password = Odoo-User-Password</pre>
         <li>Click button(s) "Queue create Line" shown in screensshot, which puts a task on the queue.</li>
         <li>Check the queue (menu: Celery / Tasks). Check the form of the Example record - new Lines had been created.</li>
       </ul>
-      <a href="https://apps.odoo.com/apps/modules/11.0/celery_example/" target="_blank" class="oe_button oe_big">Celery Example module</a>
+        <h5>
+          <i class="fa fa-info-circle"/> Celery Examples module<br/><br/>
+          <code>https://apps.odoo.com/apps/modules/11.0/celery_example/</code>
+        </h5>
       <img class="oe_demo oe_picture oe_screenshot" src="odoo-example-task-list.png">
       <img class="oe_demo oe_picture oe_screenshot" src="odoo-example-task-form.png">
     </div>
@@ -257,14 +269,14 @@ password = Odoo-User-Password</pre>
     <h4 class="oe_mb16">0.26</h4>
     <ul>
       <li>
-        Fix: AccessDenied error is raised if no password was passed to the function, but this exception was not imported.
+        Fix: AccessDenied error is raised if no password was passed to the function, but this exception was not imported.<br/>
         (GitHub PR: <code>https://github.com/novacode-nl/odoo-celery/pull/37</code>)
       </li>
     </ul>
     <h4 class="oe_mb16">0.25</h4>
     <ul>
       <li>
-        Fix relating to 0.21 (support inactive Celery User). Inactive user not allowed anymore, <strong>since recent Odoo 14.0</strong><br/>
+        Fix relating to 0.21 (support inactive Celery User). Inactive user not allowed anymore, since recent Odoo 14.0<br/>
         Override the <code>res.users</code> access <code>check</code> method: only for Celery user (from config) remove the active check.</li>
     </ul>
     <h4 class="oe_mb16">0.24</h4>
@@ -295,7 +307,9 @@ password = Odoo-User-Password</pre>
     </ul>
     <h4 class="oe_mb16">0.20</h4>
     <ul>
-      <li>[FIX] In <code>call_task()</code> the search of <code>celery.task.setting</code> results in <code>Access Denied by ACLs for operation: read, model: celery.task.setting</code>. Solved by calling the <code>celery.task.setting</code> <code>search()</code> with <code>sudo()</code>.</li>
+      <li>
+        [FIX] In <code>call_task()</code> the search of <code>celery.task.setting</code> results in <code>Access Denied by ACLs for operation: read, model: celery.task.setting</code>.<br/>
+        Solved by calling the <code>celery.task.setting</code> <code>search()</code> with <code>sudo()</code>.</li>
     </ul>
     <h4 class="oe_mb16">0.19</h4>
     <ul>
@@ -335,7 +349,7 @@ password = Odoo-User-Password</pre>
     </ul>    
     <h4 class="oe_mb16">0.11</h4>
     <ul>
-      <li>Put task into a new state <strong>Retrying</strong>, right before the Retry starts.</li>
+      <li>Put task into a new state "Retrying", right before the Retry starts.</li>
       </li>
     </ul>
     <h4 class="oe_mb16">0.10</h4>
@@ -346,13 +360,13 @@ password = Odoo-User-Password</pre>
     <h4 class="oe_mb16">0.9</h4>
     <ul>
       <li>
-        Hide (Odoo) password in the <strong>retry</strong> payload used by the MQ broker for XML-RPC authentication.
-        Mentoined in GitHub issue: <a href="https://github.com/novacode-nl/odoo-celery/issues/17" target="_blank">https://github.com/novacode-nl/odoo-celery/issues/17</a>
+        Hide (Odoo) password in the "retry" payload used by the MQ broker for XML-RPC authentication.<br/>
+        GitHub issue: <code>https://github.com/novacode-nl/odoo-celery/issues/17</code>
       </li>
     </ul>
     <h4 class="oe_mb16">0.8</h4>
     <ul>
-      <li>Fix task retry countdown/interval ignored. For more info see <a href="https://github.com/novacode-nl/odoo-celery/issues/14" target="_blank">GitHub issue</a></li>
+      <li>Fix task retry countdown/interval ignored. For more info see <code>https://github.com/novacode-nl/odoo-celery/issues/14</code></li>
       <li>Add task retry countdown settings, to increase countdown during retries ('ADD_SECS', 'MUL_RETRY', 'MUL_RETRY_SECS').</li>      
       <li>Search view of stuck tasks: (1) Add/show field <code>reference</code> (2) search-view with filters and grouping.</li>
       <li>Track task changes of fields <code>model, method, handle_stuck</code></li>
@@ -387,8 +401,8 @@ password = Odoo-User-Password</pre>
     <h4 class="oe_mb16">0.3</h4>
     <ul>
       <li>
-        Hide (Odoo) password in payload used by the broker for XML-RPC authentication.
-        Mentoined in GitHub issue: <a href="https://github.com/novacode-nl/odoo-celery/issues/4" target="_blank">https://github.com/novacode-nl/odoo-celery/issues/4</a>
+        Hide (Odoo) password in payload used by the broker for XML-RPC authentication.<br/>
+        GitHub issue: <code>https://github.com/novacode-nl/odoo-celery/issues/4</code>
       </li>
     </ul>
     <h4 class="oe_mb16">0.2</h4>
