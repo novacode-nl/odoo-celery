@@ -213,6 +213,9 @@ celery = {
             <p class="oe_mb16">(OS) Environment variables of the user running the Odoo server process: <code>ODOO_CELERY_USER</code> and <code>ODOO_CELERY_PASSWORD</code></p>
           </li>
           <li>
+	   <p class="oe_mb16">(OS) Environment variables for third-party broker: <code>ODOO_CELERY_BROKER</code>, <code>ODOO_CELERY_BROKER_HEARTBEAT</code>, <code>ODOO_CELERY_WORKER_PREFETCH_MULTIPLIER</code></p>
+	  </li>
+          <li>
             <p>Put in the <code>odoo.conf</code> file, e.g:
               <pre style="background-color: #dedede;">
 celery_user = Odoo-User
