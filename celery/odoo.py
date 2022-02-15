@@ -2,13 +2,14 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html)
 
 import copy
+import os
 
 from celery import Celery
 from celery.contrib import rdb
 from celery.exceptions import TaskError, Retry, MaxRetriesExceededError
 from celery.utils.log import get_task_logger
 from xmlrpc import client as xmlrpc_client
-
+ 
 logger = get_task_logger(__name__)
 
 TASK_DEFAULT_QUEUE = 'celery'
@@ -32,7 +33,10 @@ class RunTaskFailure(TaskError):
     """Error from rpc_run_task in Odoo."""
 
 
-app = Celery('odoo.addons.celery')
+app = Celery('odoo.addons.celery',
+            broker_url=os.environ.get('ODOO_CELERY_BROKER', False),
+            broker_heartbeat=os.environ.get('ODOO_CELERY_BROKER_HEARTBEAT', False),
+            worker_prefetch_multiplier=os.environ.get('ODOO_CELERY_WORKER_PREFETCH_MULTIPLIER', False))
 
 @app.task(name='odoo.addons.celery.odoo.call_task', bind=True)
 def call_task(self, url, db, user_id, task_uuid, model, method, **kwargs):
