@@ -68,6 +68,7 @@ class CeleryQueue(models.Model):
                 record.queue_tasks_24h_failed = queue_tasks.get(record.name + ':24h_failed', 0)
                 queue_tasks_24h = record.queue_tasks_24h
                 if queue_tasks_24h == 0: queue_tasks_24h = 1  # avoid division by zero
+                if total_tasks == 0: total_tasks = 1
                 record.queue_tasks_ratio = (float(record.queue_tasks) / float(total_tasks)) * 100.00
                 record.queue_percentage = (float(record.queue_tasks_24h_done) / float(queue_tasks_24h)) * 100.00
 
