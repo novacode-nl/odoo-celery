@@ -283,7 +283,7 @@ class CeleryTask(models.Model):
             # Closure uses several variables from enslosing scope.
             db_registry = model_registry.Registry.new(dbname)
             call_task = False
-            with api.Environment.manage(), db_registry.cursor() as cr:
+            with db_registry.cursor() as cr:
                 env = api.Environment(cr, user_id, {})
                 Task = env['celery.task']
                 try:
@@ -299,7 +299,8 @@ class CeleryTask(models.Model):
                     call_task = False
 
             if call_task:
-                with api.Environment.manage(), db_registry.cursor() as cr:
+
+                with db_registry.cursor() as cr:
                     env = api.Environment(cr, user_id, {})
                     Task = env['celery.task']
                     if not scheduled_date:  # if the task is not scheduled for a later time
@@ -308,7 +309,8 @@ class CeleryTask(models.Model):
         if transaction_strategy == 'immediate':
             apply_call_task()
         else:
-            self._cr.after('commit', apply_call_task)
+            self._cr.commit()
+            apply_call_task()
 
     def _transaction_strategies(self):
         transaction_strategies = self.env['celery.task.setting']._fields['transaction_strategy'].selection

@@ -4,7 +4,7 @@
     'name': 'Celery',
     'summary': 'Celery (Distributed Task Queue)',
     'category': 'Extra Tools',
-    'version': '0.27',
+    'version': '17.0',
     'description': """Execute Odoo methods by Celery worker tasks.""",
     'author': 'Nova Code',
     'website': 'https://www.novacode.nl',

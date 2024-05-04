@@ -49,7 +49,9 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                             <tree string="Queues" editable="bottom">
                                                 <field name="sequence" widget="handle"/>
                                                 <field name="queue_id" options="{'no_create': True}"/>
-                                                <field name="queue_max_pending_tasks" attrs="{'invisible': [('parent.use_first_empty_queue', '!=', True)]}"/>
+                                                <field name="queue_max_pending_tasks"
+                                                       invisible="not parent.use_first_empty_queue"
+                                                />
                                             </tree>
                                         </field>
                                     </group>
@@ -63,10 +65,14 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                     <group colspan="2">
                                         <p>A task seems Stuck when it's still in state <strong>Started</strong> or <strong>Retry</strong>, after certain elapsed seconds.</p>
                                     </group>
-                                    <group attrs="{'invisible': [('handle_stuck', '=', False)]}">
+                                    <group
+                                           invisible="not parent.handle_stuck"
+                                    >
                                         <field name="stuck_after_seconds"/>
                                     </group>
-                                    <group attrs="{'invisible': [('handle_stuck', '=', False)]}">
+                                    <group
+                                             invisible="not parent.handle_stuck"
+                                    >
                                         <field name="handle_stuck_by_cron"/>
                                     </group>
                                 </group>
@@ -77,7 +83,9 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                         <field name="schedule"/>
                                     </group>
                                     <group colspan="4" cols="4">
-                                        <group attrs="{'invisible': [('schedule', '=', False)]}" colspan="2" cols="2" string="Days:">
+                                        <group
+                                               invisible="not parent.schedule"
+                                               colspan="2" cols="2" string="Days:">
                                             <field name="schedule_mondays" string="Monday"/>
                                             <field name="schedule_tuesdays" string="Tuesday"/>
                                             <field name="schedule_wednesdays" string="Wednesday"/>
@@ -86,7 +94,9 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                             <field name="schedule_saturdays" string="Saturday"/>
                                             <field name="schedule_sundays" string="Sunday"/>
                                         </group>
-                                        <group attrs="{'invisible': [('schedule', '=', False)]}" colspan="2" cols="2" string="Hours:">
+                                        <group
+                                                  invisible="not parent.schedule"
+                                               colspan="2" cols="2" string="Hours:">
                                             <field name="schedule_hours_from" string="From" widget="float_time"/>
                                             <field name="schedule_hours_to" string="To" widget="float_time"/>
                                         </group>

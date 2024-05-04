@@ -35,7 +35,8 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                     <header>
                         <button
                             name="action_open_related_record" type="object" string="Related"
-                            attrs="{'invisible': [('res_model', '=', False)]}"/>
+                            invisible="not res_model"
+                            />
                         <field name="state" widget="statusbar" statusbar_visible="PENDING,STARTED,SCHEDULED,RETRY,RETRYING,FAILURE,SUCCESS"/>
                     </header>
                     <sheet>
@@ -44,7 +45,7 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                         <field name="res_model" invisible="1"/>
                         <group>
                             <field name="uuid"/>
-                            <field name="ref" attrs="{'invisible': [('ref', '=', False)]}"/>
+                            <field name="ref" invisible="not ref"/>
                         </group>
                         <group>
                             <group>
@@ -61,18 +62,23 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                             </group>
                         </group>
                         <notebook>
-                            <page name="result" string="Result" attrs="{'invisible': [('result', '=', False)]}">
+                            <page name="result" string="Result" invisible="not result">
                                 <group>
                                     <field nolabel="1" name="result"/>
                                 </group>
                             </page>
                             <page name="exc_info" string="Retry/Failure Information"
-                                  attrs="{'invisible': ['|', ('state', 'not in', ['RETRY', 'RETRYING', 'FAILURE']), ('result', '!=', False)]}">
-                                <div attrs="{'invisible': [('exc_info', '!=', False)]}">
+                                 invisible="state not in ['RETRY', 'RETRYING', 'FAILURE'] or not result"
+                            >
+                                <div
+                                     invisible="not exc_info"
+                                >
                                     <p>No Retry/Failure has occurred on this moment.</p>
                                     <p>Update the information by refreshing this view (button above).</p>
                                 </div>
-                                <group attrs="{'invisible': [('exc_info', '=', False)]}">
+                                <group
+                                       invisible="not exc_info"
+                                >
                                     <code>
                                         <field nolabel="1" name="exc_info"/>
                                     </code>
@@ -87,16 +93,19 @@ License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html) -->
                                     </group>
                                     <group name="retry_countdown_settings"
                                            string="Retry Countdown settings"
-                                           attrs="{'invisible': [('retry', '=', False), ('countdown', '=', False)]}">
+                                           invisible="not retry and not countdown"
+                                    >
                                         <field name="retry_countdown_setting" string="Retry Countdown"/>
                                         <field
                                             name="retry_countdown_add_seconds"
                                             string="Seconnds (+ countdown)"
-                                            attrs="{'invisible': ['|', ('retry', '=', False), ('retry_countdown_setting', '!=', 'ADD_SECS')]}"/>
+                                            invisible="not retry_countdown_setting != 'ADD_SECS' or not retry"
+                                        />
                                         <field
                                             name="retry_countdown_multiply_retries_seconds"
                                             string="Seconds (* retries)"
-                                            attrs="{'invisible': ['|', ('retry', '=', False), ('retry_countdown_setting', '!=', 'MUL_RETRIES_SECS')]}"/>
+                                            invisible="not retry_countdown_setting != 'MUL_RETRIES_SECS' or not retry"
+                                        />
                                     </group>
                                     <group name="retry_broker_connection" string="Retry Broker Connection">
                                         <field name="interval_start"/>
